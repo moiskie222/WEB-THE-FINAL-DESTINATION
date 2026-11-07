@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PizzaHaus Hub | Fresh From Oven</title>
+  <script>
+    try {
+      if (localStorage.getItem("theme") === "dark" ||
+          (!localStorage.getItem("theme") && matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+    } catch (error) {
+      console.error("Unable to load the saved color theme.", error);
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-orange-50 font-sans text-stone-900 antialiased transition-colors dark:bg-stone-950 dark:text-stone-100">
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
