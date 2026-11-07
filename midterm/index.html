@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PizzaHaus Hub | Fresh From Oven </title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script>
+    try {
+      if (localStorage.getItem("theme") === "dark" ||
+          (!localStorage.getItem("theme") && matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+    } catch (error) {
+      console.error("Unable to load the saved color theme.", error);
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-orange-50 font-sans text-stone-900 antialiased transition-colors dark:bg-stone-950 dark:text-stone-100">
+  <header class="sticky top-0 z-30 border-b border-orange-100 bg-white/95 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+      <a class="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-red-800 dark:text-orange-300" href="index.html">
+        <img class="h-12 w-12 rounded-full object-contain" src="images/pizza-logo.webp" alt="PizzaHaus logo" aria-hidden="true">
+            PizzaHaus
+        </a>
+      <nav class="hidden items-center gap-7 md:flex" aria-label="Main navigation">
+        <a class="border-b-2 border-red-800 py-2 font-semibold text-red-800 dark:border-orange-300 dark:text-orange-300" aria-current="page" href="index.html">Home</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page1.html">Menu</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page2.html">About</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page3.html">Contact</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" class="rounded-full border border-stone-300 px-3 py-2 text-sm font-semibold hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-stone-700 dark:hover:bg-stone-800" type="button" aria-label="Switch to dark mode" aria-pressed="false"><img class="inline-block h-5 w-5 align-middle object-contain" src="images/sun-icon.webp" alt="Sun icon" aria-hidden="true">
+            <span class="hidden sm:inline">Theme</span>
+        </button>
+        <button id="mobile-toggle" class="rounded-lg border border-stone-300 px-3 py-2 md:hidden dark:border-stone-700" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav"><img class="h-6 w-6 object-contain" src="images/ham-icon.png" alt="Ham icon" aria-hidden="true"></button>
+      </div>
+    </div>
+    <nav id="mobile-nav" class="hidden border-t border-orange-100 px-4 py-3 dark:border-stone-800 md:hidden" aria-label="Mobile navigation">
+      <div class="mx-auto flex max-w-7xl flex-col gap-1">
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="index.html">Home</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page1.html">Menu</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page2.html">About</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page3.html">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10">
+      <div class="relative isolate flex min-h-96 items-center overflow-hidden rounded-3xl bg-stone-900 shadow-2xl" data-carousel>
+        <img class="carousel-image absolute inset-0 -z-20 h-full w-full object-cover" src="images/p1.png" alt="Freshly baked PizzaHouse pizza">
+        <img class="carousel-image absolute inset-0 -z-20 hidden h-full w-full object-cover" src="images/p2.png" alt="Pineapple and ham pizza">
+        <img class="carousel-image absolute inset-0 -z-20 hidden h-full w-full object-cover" src="images/p3.png" alt="Pizza fresh from the oven">
+        <div class="absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/55 to-black/10"></div>
+        <div class="max-w-3xl px-6 py-20 text-white sm:px-12 md:px-16">
+          <p class="mb-5 inline-block rounded-full bg-amber-300 px-4 py-2 text-xs font-extrabold uppercase tracking-widest text-stone-900">Made fresh, made for sharing</p>
+          <h1 class="text-5xl font-black leading-tight sm:text-6xl">A little more <span class="text-amber-300">pizza</span>, a lot more joy.</h1>
+          <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/90">Hand-stretched dough, rich tomato sauce, and fresh ingredients—straight from our oven to your table.</p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a class="rounded-full bg-red-800 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-stone-900" href="page1.html">Explore the menu</a>
+            <a class="rounded-full border border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur transition hover:bg-white hover:text-stone-900" href="page3.html">Get in touch</a>
+          </div>
+        </div>
+        <button class="carousel-prev absolute bottom-5 right-20 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-xl font-bold text-stone-900 shadow transition hover:bg-amber-300" type="button" aria-label="Previous image"><img class="h-5 w-5 object-contain" src="images/left-arrow-icon.png" alt="Arrow left" aria-hidden="true"></button>
+        <button class="carousel-next absolute bottom-5 right-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-xl font-bold text-stone-900 shadow transition hover:bg-amber-300" type="button" aria-label="Next image"><img class="h-5 w-5 object-contain" src="images/right-arrow-icon.png" alt="Arrow right" aria-hidden="true"></button>
+        <p class="absolute bottom-7 right-36 rounded-full bg-black/50 px-3 py-1 text-sm font-semibold text-white" aria-live="polite"><span class="carousel-current">1</span> / 3</p>
+      </div>
+    </section>
+
+    <section class="border-y border-orange-100 bg-white py-14 dark:border-stone-800 dark:bg-stone-900">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Our favorites</p>
+            <h2 class="mt-2 text-3xl font-extrabold sm:text-4xl">Good things, baked daily.</h2>
+          </div>
+          <a class="font-bold text-red-800 hover:underline dark:text-orange-300" href="page1.html">See the full menu →</a>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <article class="rounded-3xl border border-orange-100 bg-orange-50 p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-lg dark:border-stone-800 dark:bg-stone-950">
+            <h3 class="text-xl font-bold">Margherita</h3>
+            <p class="mt-2 leading-relaxed text-stone-600 dark:text-stone-300">Tomato, mozzarella, basil, and a drizzle of olive oil.</p>
+          </article>
+          <article class="rounded-3xl border border-orange-100 bg-orange-50 p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-lg dark:border-stone-800 dark:bg-stone-950">
+            <h3 class="text-xl font-bold">Garden Party</h3>
+            <p class="mt-2 leading-relaxed text-stone-600 dark:text-stone-300">A colorful mix of seasonal vegetables and creamy mozzarella.</p>
+          </article>
+          <article class="rounded-3xl border border-orange-100 bg-orange-50 p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-lg dark:border-stone-800 dark:bg-stone-950">
+            <h3 class="text-xl font-bold">House Special</h3>
+            <p class="mt-2 leading-relaxed text-stone-600 dark:text-stone-300">Our signature sauce, savory toppings, and a golden crust.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-orange-100 px-4 py-6 text-center text-sm text-stone-600 dark:border-stone-800 dark:text-stone-400">
+    © 2026 PizzaHouse · Fresh from our oven
+  </footer>
+  <script src="script.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Menu | PizzaHaus</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script>
+    try {
+      if (localStorage.getItem("theme") === "dark" ||
+          (!localStorage.getItem("theme") && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark");
+    } catch (error) { console.error("Unable to load the saved color theme.", error); }
+  </script>
+</head>
+<body class="min-h-screen bg-orange-50 pb-28 font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100 sm:pb-24">
+  <header class="sticky top-0 z-30 border-b border-orange-100 bg-white/95 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+      <a class="text-2xl font-extrabold text-red-800 dark:text-orange-300" href="index.html"><img class="inline-block h-12 w-12 rounded-full align-middle object-contain" src="images/pizza-logo.webp" alt="PizzaHaus logo" aria-hidden="true"> PizzaHaus</a>
+      <nav class="hidden items-center gap-7 md:flex" aria-label="Main navigation">
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="index.html">Home</a>
+        <a class="border-b-2 border-red-800 py-2 font-semibold text-red-800 dark:border-orange-300 dark:text-orange-300" aria-current="page" href="page1.html">Menu</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page2.html">About</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page3.html">Contact</a>
+      </nav>
+      <div class="flex gap-2">
+        <button id="theme-toggle" class="rounded-full border border-stone-300 px-3 py-2 text-sm dark:border-stone-700" type="button" aria-label="Switch to dark mode" aria-pressed="false"><img class="inline-block h-5 w-5 align-middle object-contain" src="images/sun-icon.webp" alt="Sun Icon" aria-hidden="true"> Theme</button>
+        <button id="mobile-toggle" class="rounded-lg border border-stone-300 px-3 py-2 md:hidden dark:border-stone-700" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav"><img class="h-6 w-6 object-contain" src="images/ham-icon.png" alt="Hamburger Icon" aria-hidden="true"></button>
+      </div>
+    </div>
+    <nav id="mobile-nav" class="hidden border-t border-orange-100 px-4 py-3 dark:border-stone-800 md:hidden" aria-label="Mobile navigation">
+      <div class="mx-auto flex max-w-7xl flex-col gap-1">
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="index.html">Home</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page1.html">Menu</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page2.html">About</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page3.html">Contact</a>
+      </div>
+    </nav>
+  </header>
+  
+  <main class="mx-auto max-w-7xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
+    <div class="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-9">
+      <h1 class="mb-4 text-4xl font-black sm:text-5xl">Our menu</h1>
+      <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Original </p>
+      <p class="mt-4 text-lg uppercase text-stone-600 dark:text-stone-300">10 inches • Good for 3-4 person • 8 slices </p>
+      <div class="mt-6 grid gap-3">
+        <label class="sr-only" for="menu-search">Search menu items</label>
+        <input id="menu-search" class="w-full rounded-xl border border-orange-100 bg-orange-50 px-4 py-3 outline-none focus:border-red-800 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-950 dark:focus:border-orange-400 dark:focus:ring-orange-900" type="search" placeholder="Search pizzas..." autocomplete="off">
+        <div class="sticky top-20 z-20 -mx-2 flex gap-2 overflow-x-auto rounded-2xl bg-white/95 px-2 py-3 shadow-sm backdrop-blur dark:bg-stone-900/95" role="group" aria-label="Filter by category">
+          <button class="category-filter flex-none rounded-full border border-red-800 bg-yellow-400 px-5 py-2 font-black text-red-900 shadow-md dark:border-yellow-400 dark:bg-yellow-400 dark:text-red-900" type="button" data-category="all" aria-pressed="true">All Categories</button>
+          <button class="category-filter rounded-full border border-orange-100 bg-orange-50 px-4 py-2 font-semibold text-stone-700 hover:border-red-800 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-200" type="button" data-category="Classic" aria-pressed="false">Classic</button>
+          <button class="category-filter rounded-full border border-orange-100 bg-orange-50 px-4 py-2 font-semibold text-stone-700 hover:border-red-800 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-200" type="button" data-category="Supreme" aria-pressed="false">Supreme</button>
+          <button class="category-filter rounded-full border border-orange-100 bg-orange-50 px-4 py-2 font-semibold text-stone-700 hover:border-red-800 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-200" type="button" data-category="Premium" aria-pressed="false">Premium</button>
+          <button class="category-filter rounded-full border border-orange-100 bg-orange-50 px-4 py-2 font-semibold text-stone-700 hover:border-red-800 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-200" type="button" data-category="Special Pizza Combo" aria-pressed="false">Special Pizza Combo</button>
+        </div>
+        <p id="menu-results" class="text-sm text-stone-600 dark:text-stone-300" aria-live="polite"></p>
+        <p id="menu-status" class="text-sm font-semibold text-red-800 dark:text-orange-300" aria-live="polite"></p>
+      </div>
+    </div>
+  </main>
+
+  <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6" data-menu-category="Classic">
+    <section class="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-8">
+    <p class="mb-1 font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Classic </p>
+    <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+        <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p1.png" alt="Pineapple and ham pizza">
+        <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Ham &amp; Cheese</h2><span class="font-bold text-red-700 dark:text-orange-300">P150</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A delicious combination of ham and cheese on a crispy crust.</p></div>
+      </article>
+      <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+        <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p2.png" alt="Freshly baked specialty pizza">
+        <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Hawaiian</h2><span class="font-bold text-red-700 dark:text-orange-300">P150</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A generous mix of savory toppings on a golden, cheesy crust.</p></div>
+      </article>
+      <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+        <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p3.png" alt="PizzaHouse signature pizza">
+        <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Pepperoni</h2><span class="font-bold text-red-700 dark:text-orange-300">P150</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A spicy blend of pepperoni and mozzarella on a classic tomato base.</p></div>
+      </article>
+    </div>
+    </section>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6" data-menu-category="Supreme">
+    <section class="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-8">
+    <p class="mb-1 font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Supreme </p>
+    <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+        <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p4.png" alt="Pineapple and ham pizza">
+        <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Pork Floss</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A classic pizza topped with sweet and savory pork floss.</p></div>
+      </article>
+      <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+        <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p5.jpg" alt="Pineapple and ham pizza">
+        <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Overload</h2><span class="font-bold text-red-700 dark:text-orange-300">P190</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">Meat and vegetables loaded with our signature tomato sauce.</p></div>
+      </article>
+      <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+        <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p6.jpg" alt="Pineapple and ham pizza">
+        <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">PizzaHaus Special</h2><span class="font-bold text-red-700 dark:text-orange-300">P220</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">One of our signature pizza creations from PizzaHaus.</p></div>
+      </article>
+    </div>
+    </section>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6" data-menu-category="Premium">
+    <section class="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-8">
+      <p class="mb-1 font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Premium</p>
+      <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p7.jpg" alt="Pineapple and ham pizza">
+          <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Beef &amp; Mushroom</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A hearty combination of tender beef and fresh mushrooms on a crispy crust.</p></div>
+        </article>
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p8.jpg" alt="Pineapple and ham pizza">
+          <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Crab &amp; Garlic</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A delightful combination of succulent crab and aromatic garlic on a crispy crust.</p></div>
+        </article>
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p9.png" alt="Pineapple and ham pizza">
+          <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Chinese Sausage</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A savory combination of authentic Chinese sausage on a crispy crust.</p></div>
+        </article>
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p10.png" alt="Pineapple and ham pizza">
+          <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Tuna &amp; Corn</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A refreshing combination of fresh tuna and sweet corn on a crispy crust.</p></div>
+        </article>
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p11.jpg" alt="Pineapple and ham pizza">
+          <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Bacon</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A delicious combination of crispy bacon on a crispy crust.</p></div>
+        </article>
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p12.jpg" alt="Pineapple and ham pizza">
+          <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Sisig</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A flavorful Filipino dish featuring crispy pork belly and other ingredients on a crispy crust.</p></div>
+        </article>
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p13.jpg" alt="Pineapple and ham pizza">
+          <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Cheese Burger</h2><span class="font-bold text-red-700 dark:text-orange-300">P180</span></div><p class="mt-2 text-stone-600 dark:text-stone-300">A delicious combination of melted cheese and juicy beef on a crispy crust.</p></div>
+        </article>
+      </div>
+    </section>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6" data-menu-category="Special Pizza Combo">
+    <section class="rounded-3xl border border-orange-100 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-8">
+      <p class="mb-1 font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Special Pizzas Combos</p>
+      <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+          <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p14.jpg" alt="Pineapple and ham pizza">
+          <div class="p-5">
+            <div class="flex justify-between gap-3">
+              <h2 class="text-xl font-bold">Combo A</h2>
+              <span class="font-bold text-red-700 dark:text-orange-300">P225</span>
+            </div>
+            <p class="mt-2 text-stone-600 dark:text-stone-300">Regular Ham &amp; Cheese, 1.5L Coke, and our signature tomato sauce.</p>
+          </div>
+      </article>
+      <article class="group overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-stone-800 dark:bg-stone-950">
+        <img class="h-56 w-full object-cover transition duration-500 group-hover:scale-105" src="images/p15.jpg" alt="Pineapple and ham pizza">
+        <div class="p-5"><div class="flex justify-between gap-3"><h2 class="text-xl font-bold">Combo B</h2>
+          <span class="font-bold text-red-700 dark:text-orange-300">P375</span>
+        </div>
+          <p class="mt-2 text-stone-600 dark:text-stone-300">Regular Ham &amp; Cheese, Hawaiian, and 1.5L Coke with our signature tomato sauce.</p>
+        </div>
+      </article>
+    </div>
+    </section>
+  </section>
+  <div id="buy-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="buy-modal-title">
+    <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-stone-900">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Your order</p>
+          <h2 id="buy-modal-title" class="mt-1 text-2xl font-black"></h2>
+          <p id="buy-modal-price" class="mt-2 font-bold text-red-800 dark:text-orange-300"></p>
+        </div>
+        <button id="close-buy-modal" class="grid h-10 w-10 place-items-center rounded-full border border-stone-300 text-xl dark:border-stone-700" type="button" aria-label="Close order popup">×</button>
+      </div>
+      <div class="mt-6 flex items-center justify-center gap-5">
+        <button id="decrease-quantity" class="grid h-11 w-11 place-items-center rounded-full bg-orange-100 text-2xl font-bold dark:bg-stone-800" type="button" aria-label="Decrease quantity">−</button>
+        <span id="buy-quantity" class="min-w-10 text-center text-xl font-black">1</span>
+        <button id="increase-quantity" class="grid h-11 w-11 place-items-center rounded-full bg-orange-100 text-2xl font-bold dark:bg-stone-800" type="button" aria-label="Increase quantity">+</button>
+      </div>
+      <p class="mt-5 text-center text-lg">Total: <strong id="buy-total" class="text-red-800 dark:text-orange-300"></strong></p>
+      <button id="confirm-order" class="mt-6 w-full rounded-xl bg-red-800 px-4 py-3 font-bold text-white hover:bg-red-900" type="button">Order now</button>
+    </div>
+  </div>
+  <div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
+    <div class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl dark:bg-stone-900">
+      <div class="flex items-center justify-between gap-4">
+        <h2 id="order-modal-title" class="text-2xl font-black">My orders</h2>
+        <button id="close-order-modal" class="grid h-10 w-10 place-items-center rounded-full border border-stone-300 text-xl dark:border-stone-700" type="button" aria-label="Close orders">×</button>
+      </div>
+      <div id="order-list" class="mt-5 space-y-3"></div>
+      <div class="mt-6 flex items-center justify-between border-t border-orange-100 pt-4 dark:border-stone-700">
+        <span class="font-bold">Order total</span>
+        <strong id="order-total" class="text-xl text-red-800 dark:text-orange-300">P0.00</strong>
+      </div>
+      <div class="mt-5 space-y-4 rounded-2xl bg-orange-50 p-4 dark:bg-stone-950">
+        <div>
+          <label class="mb-2 block font-bold" for="delivery-location">Delivery location</label>
+          <textarea id="delivery-location" class="w-full rounded-xl border border-orange-200 bg-white px-4 py-3 outline-none focus:border-red-800 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-900" rows="3" placeholder="House number, street, barangay, city" required></textarea>
+        </div>
+        <div>
+          <label class="mb-2 block font-bold" for="delivery-phone">Contact number</label>
+          <input id="delivery-phone" class="w-full rounded-xl border border-orange-200 bg-white px-4 py-3 outline-none focus:border-red-800 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-900" type="tel" placeholder="09XXXXXXXXX" required>
+        </div>
+        <div>
+          <label class="mb-2 block font-bold" for="delivery-notes">Delivery notes <span class="font-normal text-stone-500">(optional)</span></label>
+          <input id="delivery-notes" class="w-full rounded-xl border border-orange-200 bg-white px-4 py-3 outline-none focus:border-red-800 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-900" type="text" placeholder="Landmark or delivery instructions">
+        </div>
+        <p id="delivery-status" class="hidden rounded-xl bg-red-100 px-3 py-2 text-sm font-semibold text-red-800 dark:bg-red-950 dark:text-red-200" role="alert"></p>
+      </div>
+      <button id="place-order" class="mt-5 w-full rounded-xl bg-red-800 px-4 py-3 font-bold text-white hover:bg-red-900 disabled:cursor-not-allowed disabled:opacity-50" type="button">Place order</button>
+    </div>
+  </div>
+  <button id="open-order" class="fixed bottom-0 left-0 z-40 flex w-full items-center justify-between border-t border-red-100 bg-white px-5 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.18)] dark:border-stone-700 dark:bg-stone-900 sm:left-1/2 sm:bottom-5 sm:w-[min(680px,calc(100%-2rem))] sm:-translate-x-1/2 sm:rounded-2xl sm:border sm:px-6" type="button">
+    <span class="flex items-center gap-3 text-left">
+      <span class="grid h-11 w-11 place-items-center rounded-full bg-red-800 text-sm font-black text-white"><span id="order-count">0</span></span>
+      <span>
+        <span class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">Your order</span>
+        <span class="block font-black">View orders</span>
+      </span>
+    </span>
+    <span class="rounded-full bg-yellow-400 px-5 py-3 font-black text-red-900"><span id="cart-total">P0.00</span></span>
+  </button>
+  <footer class="border-t border-[#e8ddca] px-4 py-6 text-center text-sm text-stone-600 dark:border-stone-800 dark:text-stone-400">© 2026 PizzaHouse · Fresh from our oven</footer>
+  <script src="script.js" defer></script>
+</body>
+</html>
