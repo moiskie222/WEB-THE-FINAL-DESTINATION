@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Store Locations | PizzaHaus</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script>
+    try {
+      if (localStorage.getItem("theme") === "dark" ||
+          (!localStorage.getItem("theme") && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark");
+    } catch (error) { console.error("Unable to load the saved color theme.", error); }
+  </script>
+</head>
+<body class="min-h-screen bg-orange-50 font-sans text-stone-900 antialiased dark:bg-stone-950 dark:text-stone-100">
+  <header class="sticky top-0 z-30 border-b border-orange-100 bg-white/95 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+      <a class="text-2xl font-extrabold text-red-800 dark:text-orange-300" href="index.html"><img class="inline-block h-12 w-12 rounded-full align-middle object-contain" src="images/pizza-logo.webp" alt="PizzaHaus logo" aria-hidden="true"> PizzaHaus</a>
+      <nav class="hidden items-center gap-7 md:flex" aria-label="Main navigation">
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="index.html">Home</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page1.html">Menu</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page2.html">About</a>
+        <a class="border-b-2 border-red-800 py-2 font-semibold text-red-800 dark:border-orange-300 dark:text-orange-300" aria-current="page" href="page4.html">Locations</a>
+        <a class="border-b-2 border-transparent py-2 hover:border-red-800 hover:text-red-800 dark:hover:border-orange-300 dark:hover:text-orange-300" href="page3.html">Contact</a>
+      </nav>
+      <div class="flex gap-2">
+        <button id="theme-toggle" class="rounded-full border border-stone-300 px-3 py-2 text-sm dark:border-stone-700" type="button" aria-label="Switch to dark mode" aria-pressed="false"><img class="inline-block h-5 w-5 align-middle object-contain" src="images/sun-icon.webp" alt="Sun icon" aria-hidden="true"> Theme</button>
+        <button id="mobile-toggle" class="rounded-lg border border-stone-300 px-3 py-2 md:hidden dark:border-stone-700" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav"><img class="h-6 w-6 object-contain" src="images/ham-icon.png" alt="Menu icon" aria-hidden="true"></button>
+      </div>
+    </div>
+    <nav id="mobile-nav" class="hidden border-t border-orange-100 px-4 py-3 dark:border-stone-800 md:hidden" aria-label="Mobile navigation">
+      <div class="mx-auto flex max-w-7xl flex-col gap-1">
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="index.html">Home</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page1.html">Menu</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page2.html">About</a>
+        <a class="rounded-lg bg-orange-100 px-3 py-2 font-semibold text-red-800 dark:bg-stone-800 dark:text-orange-300" href="page4.html" aria-current="page">Locations</a>
+        <a class="rounded-lg px-3 py-2 hover:bg-orange-100 dark:hover:bg-stone-800" href="page3.html">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
+    <section class="mx-auto mb-10 max-w-2xl text-center">
+      <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Visit PizzaHaus</p>
+      <h1 class="mt-3 text-4xl font-black sm:text-5xl">Find a store near you</h1>
+      <p class="mt-5 text-lg leading-relaxed text-stone-600 dark:text-stone-300">Choose a location for directions, operating hours, and pickup information.</p>
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <article class="overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg dark:border-stone-800 dark:bg-stone-900">
+        <iframe class="h-72 w-full border-0" title="PizzaHaus Sipocot location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=Sipocot%2C%20Camarines%20Sur%2C%20Philippines&amp;t=&amp;z=13&amp;ie=UTF8&amp;iwloc=&amp;output=embed"></iframe>
+        <div class="p-6 sm:p-7">
+          <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Branch Store</p>
+          <h2 class="mt-2 text-2xl font-extrabold">PizzaHaus Sipocot</h2>
+          <dl class="mt-5 space-y-4 text-stone-600 dark:text-stone-300">
+            <div><dt class="font-bold text-stone-900 dark:text-stone-100">Location</dt><dd>Sipocot, Camarines Sur</dd></div>
+            <div><dt class="font-bold text-stone-900 dark:text-stone-100">Hours</dt><dd>Daily, 10:00 AM - 9:00 PM</dd></div>
+            <div><dt class="font-bold text-stone-900 dark:text-stone-100">Services</dt><dd>Dine-in, pickup, and delivery</dd></div>
+          </dl>
+          <a class="mt-6 inline-flex rounded-full bg-red-800 px-5 py-3 font-bold text-white transition hover:-translate-y-0.5 hover:bg-red-900" href="https://www.google.com/maps/search/?api=1&amp;query=Sipocot%2C+Camarines+Sur%2C+Philippines" target="_blank" rel="noopener noreferrer">Get directions</a>
+        </div>
+      </article>
+
+      <article class="overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-lg dark:border-stone-800 dark:bg-stone-900">
+        <iframe class="h-72 w-full border-0" title="PizzaHaus Naga City location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=Naga%20City%2C%20Camarines%20Sur%2C%20Philippines&amp;t=&amp;z=13&amp;ie=UTF8&amp;iwloc=&amp;output=embed"></iframe>
+        <div class="p-6 sm:p-7">
+          <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Main Office</p>
+          <h2 class="mt-2 text-2xl font-extrabold">PizzaHaus Naga City</h2>
+          <dl class="mt-5 space-y-4 text-stone-600 dark:text-stone-300">
+            <div><dt class="font-bold text-stone-900 dark:text-stone-100">Location</dt><dd>Naga City, Camarines Sur</dd></div>
+            <div><dt class="font-bold text-stone-900 dark:text-stone-100">Hours</dt><dd>Daily, 10:00 AM - 9:00 PM</dd></div>
+            <div><dt class="font-bold text-stone-900 dark:text-stone-100">Services</dt><dd>Main office, supplies, pickup, and delivery</dd></div>
+          </dl>
+          <a class="mt-6 inline-flex rounded-full bg-red-800 px-5 py-3 font-bold text-white transition hover:-translate-y-0.5 hover:bg-red-900" href="https://www.google.com/maps/search/?api=1&amp;query=Naga+City%2C+Camarines+Sur%2C+Philippines" target="_blank" rel="noopener noreferrer">Get directions</a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="border-t border-orange-100 px-4 py-6 text-center text-sm text-stone-600 dark:border-stone-800 dark:text-stone-400">© 2026 PizzaHaus · Fresh from our oven</footer>
+  <script src="script.js" defer></script>
+</body>
+</html>
