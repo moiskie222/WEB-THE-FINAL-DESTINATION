@@ -4,6 +4,10 @@ const categoryButtons = [...document.querySelectorAll(".category-filter")];
 if (menuSearch && categoryButtons.length) {
   const buyModal = document.querySelector("#buy-modal");
   const orderModal = document.querySelector("#order-modal");
+  const deliveryDetails = document.querySelector("#delivery-details");
+  const fulfillmentOptions = [...document.querySelectorAll('input[name="fulfillment"]')];
+  const locationField = document.querySelector("#delivery-location");
+  const phoneField = document.querySelector("#delivery-phone");
   const orders = new Map();
   let selectedItem = null;
   let buyQuantity = 1;
@@ -40,6 +44,13 @@ if (menuSearch && categoryButtons.length) {
         <button class="remove-order rounded-lg border border-red-800 px-3 py-2 text-sm font-bold text-red-800" type="button" data-order-index="${index}" aria-label="Remove ${order.name}">Remove</button>
       </div>
     `).join("");
+  };
+
+  const updateFulfillmentFields = () => {
+    const isDelivery = document.querySelector('input[name="fulfillment"]:checked').value === "delivery";
+    deliveryDetails.classList.toggle("hidden", !isDelivery);
+    locationField.required = isDelivery;
+    phoneField.required = isDelivery;
   };
 
   const addOrder = (item, quantity = 1) => {
@@ -173,6 +184,8 @@ if (menuSearch && categoryButtons.length) {
   document.querySelector("#close-buy-modal")?.addEventListener("click", () => setModalVisibility(buyModal, false));
   document.querySelector("#open-order")?.addEventListener("click", () => setModalVisibility(orderModal, true));
   document.querySelector("#close-order-modal")?.addEventListener("click", () => setModalVisibility(orderModal, false));
+  fulfillmentOptions.forEach((option) => option.addEventListener("change", updateFulfillmentFields));
+  updateFulfillmentFields();
   document.querySelector("#order-list")?.addEventListener("click", (event) => {
     const button = event.target.closest(".remove-order");
     if (!button) return;
@@ -181,13 +194,12 @@ if (menuSearch && categoryButtons.length) {
     updateOrder();
   });
   document.querySelector("#place-order")?.addEventListener("click", () => {
-    const locationField = document.querySelector("#delivery-location");
-    const phoneField = document.querySelector("#delivery-phone");
+    const fulfillment = document.querySelector('input[name="fulfillment"]:checked').value;
     const deliveryStatus = document.querySelector("#delivery-status");
     const location = locationField.value.trim();
     const phone = phoneField.value.trim();
 
-    if (!location || !phone) {
+    if (fulfillment === "delivery" && (!location || !phone)) {
       deliveryStatus.textContent = "Please enter your delivery location and contact number.";
       deliveryStatus.classList.remove("hidden");
       (!location ? locationField : phoneField).focus();
@@ -196,12 +208,15 @@ if (menuSearch && categoryButtons.length) {
 
     deliveryStatus.classList.add("hidden");
     const notes = document.querySelector("#delivery-notes").value.trim();
-    document.querySelector("#menu-status").textContent = `Order placed for delivery to ${location}.${notes ? ` Notes: ${notes}` : ""}`;
+    document.querySelector("#menu-status").textContent = fulfillment === "pickup"
+      ? "Order placed for pickup."
+      : `Order placed for delivery to ${location}.${notes ? ` Notes: ${notes}` : ""}`;
     orders.clear();
     updateOrder();
     setModalVisibility(orderModal, false);
     locationField.value = "";
     phoneField.value = "";
+    document.querySelector("#delivery-notes").value = "";
   });
   [buyModal, orderModal].forEach((modal) => modal?.addEventListener("click", (event) => {
     if (event.target === modal) setModalVisibility(modal, false);
