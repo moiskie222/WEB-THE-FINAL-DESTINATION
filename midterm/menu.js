@@ -112,16 +112,28 @@ if (menuSearch && categoryButtons.length) {
     })
   );
   const results = document.querySelector("#menu-results");
+  const cravingKeywords = {
+    cheesy: ["cheese", "cheesy", "mozzarella"],
+    meaty: ["ham", "meat", "beef", "bacon", "sausage", "pepperoni", "pork", "sisig"],
+    veggie: ["vegetable", "veggie", "mushroom", "corn", "basil"],
+    spicy: ["spicy", "pepperoni", "hot"]
+  };
+  const searchParams = new URLSearchParams(window.location.search);
+  let selectedCraving = searchParams.get("craving")?.toLowerCase() || "";
+  menuSearch.value = searchParams.get("search") || "";
+  if (!Object.prototype.hasOwnProperty.call(cravingKeywords, selectedCraving)) selectedCraving = "";
   let selectedCategory = "all";
 
   const filterMenu = () => {
     const query = menuSearch.value.trim().toLocaleLowerCase();
+    const keywords = cravingKeywords[selectedCraving] || [];
     let visibleCount = 0;
 
     menuItems.forEach(({ item, section, searchText }) => {
       const matchesCategory = selectedCategory === "all" || section.dataset.menuCategory === selectedCategory;
+      const matchesCraving = !keywords.length || keywords.some((keyword) => searchText.includes(keyword));
       const matchesSearch = searchText.includes(query);
-      const visible = matchesCategory && matchesSearch;
+      const visible = matchesCategory && matchesCraving && matchesSearch;
       item.classList.toggle("hidden", !visible);
       if (visible) visibleCount += 1;
     });
@@ -131,12 +143,16 @@ if (menuSearch && categoryButtons.length) {
       section.classList.toggle("hidden", !hasVisibleItems);
     });
 
+    const cravingLabel = selectedCraving ? ` for ${selectedCraving} cravings` : "";
     results.textContent = visibleCount
-      ? `Showing ${visibleCount} menu item${visibleCount === 1 ? "" : "s"}.`
+      ? `Showing ${visibleCount} menu item${visibleCount === 1 ? "" : "s"}${cravingLabel}.`
       : "No menu items match your search.";
   };
 
-  menuSearch.addEventListener("input", filterMenu);
+  menuSearch.addEventListener("input", () => {
+    selectedCraving = "";
+    filterMenu();
+  });
   categoryButtons.forEach((button) => {
     button.addEventListener("click", () => {
       selectedCategory = button.dataset.category;

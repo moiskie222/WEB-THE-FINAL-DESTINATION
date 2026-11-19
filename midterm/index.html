@@ -6,6 +6,8 @@
   <title>PizzaHaus Hub | Fresh From Oven </title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="pizzahaus-background.css">
+  <link rel="stylesheet" href="home-effects.css">
   <script>
     try {
       if (localStorage.getItem("theme") === "dark" ||
@@ -17,8 +19,12 @@
     }
   </script>
 </head>
-<body class="min-h-screen bg-orange-50 font-sans text-stone-900 antialiased transition-colors dark:bg-stone-950 dark:text-stone-100">
-  <header class="sticky top-0 z-30 border-b border-orange-100 bg-white/95 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95">
+<body class="min-h-screen font-sans text-stone-900 antialiased transition-colors dark:text-stone-100">
+  <aside class="welcome-strip" id="welcome-strip" aria-label="PizzaHaus updates">
+    <p id="welcome-message" aria-live="off">Freshly baked daily, made to share.</p>
+    <button id="welcome-dismiss" type="button" aria-label="Dismiss updates">×</button>
+  </aside>
+  <header class="sticky top-0 z-30 border-b border-orange-100 bg-white/85 backdrop-blur dark:border-stone-800 dark:bg-stone-950/85">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
       <a class="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-red-800 dark:text-orange-300" href="index.html">
         <img class="h-12 w-12 rounded-full object-contain" src="images/pizza-logo.webp" alt="PizzaHaus logo" aria-hidden="true">
@@ -52,31 +58,62 @@
   <main>
     <section class="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10">
       <div class="relative isolate flex min-h-96 items-center overflow-hidden rounded-3xl bg-stone-900 shadow-2xl" data-carousel>
+        <div class="hero-media" data-hero-media>
         <img class="carousel-image absolute inset-0 -z-20 h-full w-full object-cover" src="images/p1.png" alt="Freshly baked PizzaHouse pizza">
         <img class="carousel-image absolute inset-0 -z-20 hidden h-full w-full object-cover" src="images/p2.png" alt="Pineapple and ham pizza">
         <img class="carousel-image absolute inset-0 -z-20 hidden h-full w-full object-cover" src="images/p3.png" alt="Pizza fresh from the oven">
         <div class="absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/55 to-black/10"></div>
-        <div class="max-w-3xl px-6 py-20 text-white sm:px-12 md:px-16">
+          </div>
+        <div class="relative z-20 max-w-3xl px-6 py-20 text-white sm:px-12 md:px-16">
+          <p class="mb-2 text-sm font-bold text-amber-200" data-time-greeting>Welcome to PizzaHaus.</p>
           <p class="mb-5 inline-block rounded-full bg-amber-300 px-4 py-2 text-xs font-extrabold uppercase tracking-widest text-stone-900">Made fresh, made for sharing</p>
-          <h1 class="text-5xl font-black leading-tight sm:text-6xl">A little more <span class="text-amber-300">pizza</span>, a lot more joy.</h1>
+          <h1 class="text-5xl font-black leading-tight sm:text-6xl">Pizza made <span class="hero-word text-amber-300" data-hero-word>Hot</span>.</h1>
           <p class="mt-5 max-w-xl text-lg leading-relaxed text-white/90">Hand-stretched dough, rich tomato sauce, and fresh ingredients—straight from our oven to your table.</p>
           <div class="mt-8 flex flex-wrap gap-3">
             <a class="rounded-full bg-red-800 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-stone-900" href="page1.html">Explore the menu</a>
             <a class="rounded-full border border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur transition hover:bg-white hover:text-stone-900" href="page3.html">Get in touch</a>
           </div>
+          <span class="mt-5 inline-flex items-center gap-2 rounded-full bg-black/45 px-4 py-2 text-sm font-bold backdrop-blur-sm" data-store-status data-open-hour="10" data-close-hour="21" data-open-label="10:00 AM" data-close-label="9:00 PM" role="status" aria-live="polite">
+            <span class="h-2.5 w-2.5 rounded-full" data-status-dot aria-hidden="true"></span>
+            <span data-status-label>Checking store hours...</span>
+          </span>
+          <div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-white/20 bg-black/35 p-4 backdrop-blur-sm" aria-live="polite">
+            <div class="min-w-32 flex-1">
+              <p class="text-xs font-bold uppercase tracking-widest text-amber-300">On the carousel</p>
+              <p class="mt-1 text-lg font-extrabold" data-carousel-product>Ham &amp; Cheese</p>
+            </div>
+            <p class="text-lg font-black" data-carousel-price>P150</p>
+            <a class="rounded-full bg-amber-300 px-5 py-2.5 text-sm font-extrabold text-stone-900 transition hover:bg-amber-200" data-carousel-order href="page1.html?search=Ham%20%26%20Cheese">Order</a>
+          </div>
         </div>
-        <button class="carousel-prev absolute bottom-5 right-20 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-xl font-bold text-stone-900 shadow transition hover:bg-amber-300" type="button" aria-label="Previous image"><img class="h-5 w-5 object-contain" src="images/left-arrow-icon.png" alt="Arrow left" aria-hidden="true"></button>
-        <button class="carousel-next absolute bottom-5 right-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-xl font-bold text-stone-900 shadow transition hover:bg-amber-300" type="button" aria-label="Next image"><img class="h-5 w-5 object-contain" src="images/right-arrow-icon.png" alt="Arrow right" aria-hidden="true"></button>
-        <p class="absolute bottom-7 right-36 rounded-full bg-black/50 px-3 py-1 text-sm font-semibold text-white" aria-live="polite"><span class="carousel-current">1</span> / 3</p>
+        <a class="scroll-cue absolute bottom-5 left-6 z-20 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-2xl font-bold text-stone-900 shadow" href="#favorites" aria-label="Scroll to our favorites">↓</a>
+        <button class="carousel-prev absolute bottom-5 right-20 z-20 grid h-11 w-11 place-items-center rounded-full bg-white text-xl font-bold text-stone-900 shadow transition hover:bg-amber-300" type="button" aria-label="Previous image"><img class="h-5 w-5 object-contain" src="images/left-arrow-icon.png" alt="Arrow left" aria-hidden="true"></button>
+        <button class="carousel-next absolute bottom-5 right-6 z-20 grid h-11 w-11 place-items-center rounded-full bg-white text-xl font-bold text-stone-900 shadow transition hover:bg-amber-300" type="button" aria-label="Next image"><img class="h-5 w-5 object-contain" src="images/right-arrow-icon.png" alt="Arrow right" aria-hidden="true"></button>
+        <p class="absolute bottom-7 right-36 z-20 rounded-full bg-black/50 px-3 py-1 text-sm font-semibold text-white" aria-live="polite"><span class="carousel-current">1</span> / 3</p>
       </div>
     </section>
 
-    <section class="border-y border-orange-100 bg-white py-14 dark:border-stone-800 dark:bg-stone-900">
+    <section class="mx-auto max-w-7xl px-4 pb-12 sm:px-6" aria-labelledby="craving-heading">
+      <div class="flex flex-col gap-5 rounded-3xl border border-orange-100 bg-white/85 p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900/85 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <div>
+          <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Find your flavor</p>
+          <h2 class="mt-2 text-2xl font-extrabold" id="craving-heading">What are you craving?</h2>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a class="craving-chip" href="page1.html?craving=cheesy">Cheesy</a>
+          <a class="craving-chip" href="page1.html?craving=meaty">Meaty</a>
+          <a class="craving-chip" href="page1.html?craving=veggie">Veggie</a>
+          <a class="craving-chip" href="page1.html?craving=spicy">Spicy</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="favorites" class="border-y border-orange-100 bg-white py-14 dark:border-stone-800 dark:bg-stone-900" aria-labelledby="favorites-heading">
       <div class="mx-auto max-w-7xl px-4 sm:px-6">
         <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p class="font-bold uppercase tracking-widest text-red-800 dark:text-orange-300">Our favorites</p>
-            <h2 class="mt-2 text-3xl font-extrabold sm:text-4xl">Good things, baked daily.</h2>
+            <h2 class="mt-2 text-3xl font-extrabold sm:text-4xl" id="favorites-heading">Good things, baked daily.</h2>
           </div>
           <a class="font-bold text-red-800 hover:underline dark:text-orange-300" href="page1.html">See the full menu →</a>
         </div>
@@ -96,13 +133,25 @@
         </div>
       </div>
     </section>
+
+    <section class="mx-auto max-w-7xl px-4 pb-14 sm:px-6" aria-labelledby="hot-right-now-heading">
+      <div class="flex items-start gap-4 rounded-3xl border border-orange-100 bg-orange-50 p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-8">
+        <span class="text-2xl" aria-hidden="true">🔥</span>
+        <div>
+          <h2 class="text-xl font-extrabold" id="hot-right-now-heading">Hot right now</h2>
+          <p class="mt-2 text-stone-600 dark:text-stone-300">Live order totals will appear here when order data is connected.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="border-t border-orange-100 px-4 py-6 text-center text-sm text-stone-600 dark:border-stone-800 dark:text-stone-400">
+  <footer class="border-t border-orange-100 bg-white/85 px-4 py-6 text-center text-sm text-stone-600 backdrop-blur dark:border-stone-800 dark:bg-stone-950/85 dark:text-stone-300">
     © 2026 PizzaHouse · Fresh from our oven
   </footer>
   <script src="theme.js" defer></script>
   <script src="mobile-nav.js" defer></script>
   <script src="carousel.js" defer></script>
+  <script src="home-effects.js" defer></script>
+  <script src="locations.js" defer></script>
 </body>
 </html>
