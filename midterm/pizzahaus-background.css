@@ -1,0 +1,32 @@
+body {
+  background-color: #fff8d8;
+  background-image:
+    linear-gradient(rgba(255, 250, 225, 0.12), rgba(255, 250, 225, 0.12)),
+    url("images/pizzahaus-background.png");
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+header {
+  backdrop-filter: blur(12px);
+}
+
+.sidebar,
+.topbar {
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+html.dark body {
+  background-color: #171711;
+  background-image:
+    linear-gradient(rgba(15, 16, 13, 0.86), rgba(15, 16, 13, 0.86)),
+    url("images/pizzahaus-background.png");
+}
+
+html.dark .sidebar,
+html.dark .topbar {
+  background-color: rgba(23, 23, 17, 0.88);
+}

@@ -242,34 +242,41 @@ function renderOverview() {
   const openIssues = records.QualityIssue.filter((row) => !/resolved|closed/i.test(row.ResolutionStatus || "")).length;
   const lowStock = records.Ingredient.filter((row) => Number(row.CurrentStock) <= Number(row.ReorderLevel)).length;
   const reportSales = records.DailyReport.reduce((sum, row) => sum + Number(row.TotalSales || 0), 0);
+  const manilaDateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const today = `${manilaDateParts.find((part) => part.type === "year").value}-${manilaDateParts.find((part) => part.type === "month").value}-${manilaDateParts.find((part) => part.type === "day").value}`;
+  const ordersToday = records.CustomerOrder.filter((order) => String(order.OrderDateTime || "").slice(0, 10) === today).length;
   const metrics = [
-    ["Total orders", records.CustomerOrder.length, "Across all stores", "▣"],
-    ["Menu items", records.MenuItem.length, "Available in the menu", "◉"],
-    ["Low stock items", lowStock, lowStock ? "Need attention" : "Stock levels look good", "↕"],
-    ["Reported sales", `$${reportSales.toFixed(2)}`, "From saved daily reports", "$"]
+    ["Orders today", ordersToday, "Across all stores", "▣"],
+    ["Low stock", lowStock, lowStock ? "Need attention" : "Stock levels look good", "↕"],
+    ["Total sales", `₱${reportSales.toFixed(2)}`, "From saved daily reports", "₱"]
   ];
   const orders = [...records.CustomerOrder].sort((a, b) => String(b.OrderDateTime).localeCompare(String(a.OrderDateTime))).slice(0, 5);
   const issues = records.QualityIssue.filter((row) => !/resolved|closed/i.test(row.ResolutionStatus || "")).slice(0, 4);
   overviewPanel.innerHTML = `
     <div class="metrics-grid">${metrics.map(([label, value, hint, icon]) => `
-      <article class="metric-card"><div class="metric-top">${label}<span class="metric-icon">${icon}</span></div>
+      <article class="metric-card"><div class="metric-top">${label}<span class="metric-icon" aria-hidden="true">${icon}</span></div>
       <div class="metric-value">${escapeHtml(value)}</div><div class="metric-hint">${hint}</div></article>`).join("")}</div>
     <div class="overview-grid">
       <section class="overview-card">
         <div class="card-heading"><h2>Recent orders</h2><a class="text-link" href="#CustomerOrder" data-jump="CustomerOrder">View all →</a></div>
         ${orders.length ? `<div class="table-wrap"><table class="overview-table"><thead><tr><th>ORDER</th><th>CUSTOMER</th><th>STORE</th><th>METHOD</th><th>STATUS</th></tr></thead><tbody>
-          ${orders.map((order) => `<tr><td>#${formatValue(order.OrderID)}</td><td><span class="order-name">${formatValue(order.CustomerName)}</span><span class="sub-cell">${formatValue(order.OrderDateTime)}</span></td><td>${formatValue(order.StoreID)}</td><td>${formatValue(order.PickupMethod)}</td><td><span class="status-pill pending">Received</span></td></tr>`).join("")}
+          ${orders.map((order) => `<tr><td>#${formatValue(order.OrderID)}</td><td><span class="order-name">${formatValue(order.CustomerName)}</span><span class="sub-cell">${formatValue(order.OrderDateTime)}</span></td><td>${formatValue(order.StoreID)}</td><td>${formatValue(order.PickupMethod)}</td><td><span class="status-chip warning">Received</span></td></tr>`).join("")}
         </tbody></table></div>` : `<div class="empty-state">No orders yet.</div>`}
       </section>
       <section class="overview-card">
         <div class="card-heading"><h2>Needs attention</h2><a class="text-link" href="#Ingredient" data-jump="Ingredient">Inventory →</a></div>
         <div class="stock-list">${records.Ingredient.filter((row) => Number(row.CurrentStock) <= Number(row.ReorderLevel)).map((item) =>
-          `<div class="stock-row"><div><strong>${formatValue(item.IngredientName)}</strong><span>${formatValue(item.CurrentStock)} ${formatValue(item.UnitMeasure)} in stock · Reorder at ${formatValue(item.ReorderLevel)}</span></div><span class="stock-qty">LOW</span></div>`
+          `<div class="stock-row"><div><strong>${formatValue(item.IngredientName)}</strong><span>${formatValue(item.CurrentStock)} ${formatValue(item.UnitMeasure)} in stock · Reorder at ${formatValue(item.ReorderLevel)}</span></div><span class="status-chip danger">LOW STOCK</span></div>`
         ).join("") || `<div class="empty-state">All ingredient levels are looking good.</div>`}
         </div>
         <div class="card-heading"><h2>Open quality issues</h2><a class="text-link" href="#QualityIssue" data-jump="QualityIssue">${openIssues} open</a></div>
         <div class="stock-list">${issues.map((issue) =>
-          `<div class="stock-row"><div><strong>Order #${formatValue(issue.OrderID)}</strong><span>${formatValue(issue.Description)}</span></div><span class="stock-qty">${formatValue(issue.ResolutionStatus)}</span></div>`
+          `<div class="stock-row"><div><strong>Order #${formatValue(issue.OrderID)}</strong><span>${formatValue(issue.Description)}</span></div>${renderStatusChip(issue.ResolutionStatus)}</div>`
         ).join("") || `<div class="empty-state">No open quality issues.</div>`}</div>
       </section>
     </div>`;
@@ -290,7 +297,7 @@ function renderTable() {
   document.querySelector("#record-count").textContent = `${filtered.length} ${filtered.length === 1 ? "record" : "records"}`;
   document.querySelector("#table-summary").textContent = `${filtered.length} of ${records[activeTable].length} records`;
   document.querySelector("#table-body").innerHTML = filtered.length
-    ? filtered.map((record) => `<tr>${config.fields.map(([key]) => `<td>${formatValue(record[key])}</td>`).join("")}
+    ? filtered.map((record) => `<tr>${config.fields.map(([key]) => `<td>${renderTableCell(activeTable, record, key)}</td>`).join("")}
       <td class="actions-cell"><button class="row-action" type="button" data-edit="${escapeHtml(record[config.id])}">Edit</button><button class="row-action delete" type="button" data-delete="${escapeHtml(record[config.id])}">Delete</button></td></tr>`).join("")
     : `<tr><td colspan="${visibleFields.length + 2}" class="empty-state">No matching records found.</td></tr>`;
 
@@ -300,6 +307,27 @@ function renderTable() {
   document.querySelector("#table-body").querySelectorAll("[data-delete]").forEach((button) =>
     button.addEventListener("click", () => deleteRecord(button.dataset.delete))
   );
+}
+
+function statusTone(value) {
+  const status = String(value ?? "").toLowerCase();
+  if (/\b(resolved|closed|complete|completed|received|active)\b/.test(status)) return "success";
+  if (/pending|progress|preparing|processing/.test(status)) return "warning";
+  if (/cancel|reject|failed|overdue|low/.test(status)) return "danger";
+  return "neutral";
+}
+
+function renderStatusChip(value) {
+  return `<span class="status-chip ${statusTone(value)}">${formatValue(value)}</span>`;
+}
+
+function renderTableCell(table, record, key) {
+  if (key === "ResolutionStatus" || /status$/i.test(key)) return renderStatusChip(record[key]);
+  if (table === "Ingredient" && key === "CurrentStock" &&
+      Number(record.CurrentStock) <= Number(record.ReorderLevel)) {
+    return `<span class="status-chip danger">${formatValue(record[key])}</span>`;
+  }
+  return formatValue(record[key]);
 }
 
 function openDialog(id) {
@@ -357,6 +385,12 @@ document.querySelector("#cancel-dialog").addEventListener("click", () => dialog.
 document.querySelector("#mobile-menu").addEventListener("click", (event) => {
   const open = sidebar.classList.toggle("open");
   event.currentTarget.setAttribute("aria-expanded", String(open));
+});
+document.querySelector("#sidebar-collapse").addEventListener("click", (event) => {
+  const collapsed = document.documentElement.classList.toggle("sidebar-collapsed");
+  event.currentTarget.setAttribute("aria-pressed", String(collapsed));
+  event.currentTarget.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+  event.currentTarget.textContent = collapsed ? "⇥" : "⇤";
 });
 
 form.addEventListener("submit", (event) => {
