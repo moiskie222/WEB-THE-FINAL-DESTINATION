@@ -57,13 +57,10 @@ if (carousel) {
 
     previousButton?.addEventListener("click", () => changeSlide(activeIndex - 1));
     nextButton?.addEventListener("click", () => changeSlide(activeIndex + 1));
-    carousel.addEventListener("mouseenter", stopAutoplay);
-    carousel.addEventListener("mouseleave", startAutoplay);
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) stopAutoplay();
       else startAutoplay();
     });
-
     startAutoplay();
   }
 }

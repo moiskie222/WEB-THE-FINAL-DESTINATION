@@ -2,15 +2,19 @@ const schema = {
   CustomerOrder: {
     label: "Orders", icon: "▣", id: "OrderID",
     fields: [
-      ["OrderID", "number", "Order ID"], ["StoreID", "number", "Store ID"],
+      ["OrderID", "number", "Order ID"], ["Reference", "text", "Reference"],
       ["CustomerName", "text", "Customer name"], ["ContactNumber", "tel", "Contact number"],
-      ["PickupMethod", "text", "Pickup method"], ["OrderDateTime", "datetime-local", "Order date & time"]
+      ["StoreID", "number", "Store ID"], ["StoreName", "text", "Branch"],
+      ["PickupMethod", "text", "Fulfillment"], ["DeliveryLocation", "text", "Delivery location"],
+      ["Notes", "textarea", "Customer notes"], ["PaymentMethod", "text", "Payment method"],
+      ["PaymentStatus", "text", "Payment status"], ["OrderDateTime", "text", "Order date & time"],
+      ["Total", "number", "Total", { step: "0.01" }], ["Status", "text", "Status"]
     ]
   },
   OrderDetails: {
-    label: "Order details", icon: "☷", id: "OrderDetailID",
+    label: "Order details", icon: "☷", id: "OrderDetailID", readOnly: true,
     fields: [
-      ["OrderDetailID", "number", "Order detail ID"], ["OrderID", "number", "Order ID"],
+      ["OrderDetailID", "text", "Order detail ID"], ["OrderID", "number", "Order ID"],
       ["MenuItemID", "number", "Menu item ID"], ["Quantity", "number", "Quantity"],
       ["Price", "number", "Price", { step: "0.01" }]
     ]
@@ -54,7 +58,7 @@ const schema = {
     ]
   },
   InventoryTransaction: {
-    label: "Inventory", icon: "↕", id: "TransactionID",
+    label: "Transactions", icon: "↕", id: "TransactionID",
     fields: [
       ["TransactionID", "number", "Transaction ID"], ["IngredientID", "number", "Ingredient ID"],
       ["DeliveryID", "number", "Delivery ID"], ["OrderID", "number", "Order ID"],
@@ -82,52 +86,37 @@ const schema = {
 };
 
 const storageKey = "pizzahaus-admin-records-v1";
-const seedData = {
-  CustomerOrder: [
-    { OrderID: 1001, StoreID: 1, CustomerName: "Mia Thompson", ContactNumber: "555-0142", PickupMethod: "Pickup", OrderDateTime: "2026-11-19T10:15" },
-    { OrderID: 1002, StoreID: 1, CustomerName: "Noah Williams", ContactNumber: "555-0188", PickupMethod: "Delivery", OrderDateTime: "2026-11-19T10:42" },
-    { OrderID: 1003, StoreID: 2, CustomerName: "Ava Chen", ContactNumber: "555-0115", PickupMethod: "Pickup", OrderDateTime: "2026-11-19T11:05" }
-  ],
-  OrderDetails: [
-    { OrderDetailID: 1, OrderID: 1001, MenuItemID: 1, Quantity: 2, Price: 13.5 },
-    { OrderDetailID: 2, OrderID: 1002, MenuItemID: 3, Quantity: 1, Price: 16.0 },
-    { OrderDetailID: 3, OrderID: 1003, MenuItemID: 2, Quantity: 1, Price: 14.0 }
-  ],
+const resetKey = "pizzahaus-admin-demo-records-cleared-v1";
+const initialRecords = {
+  CustomerOrder: [],
+  OrderDetails: [],
   MenuItem: [
-    { MenuItemID: 1, ItemName: "Margherita", Price: 13.5 },
-    { MenuItemID: 2, ItemName: "Garden Party", Price: 14.0 },
-    { MenuItemID: 3, ItemName: "House Special", Price: 16.0 }
+    { MenuItemID: 1, ItemName: "Ham & Cheese", Price: 150 },
+    { MenuItemID: 2, ItemName: "Hawaiian", Price: 150 },
+    { MenuItemID: 3, ItemName: "Pepperoni", Price: 150 },
+    { MenuItemID: 4, ItemName: "Pork Floss", Price: 180 },
+    { MenuItemID: 5, ItemName: "Overload", Price: 190 },
+    { MenuItemID: 6, ItemName: "PizzaHaus Special", Price: 220 },
+    { MenuItemID: 7, ItemName: "Beef & Mushroom", Price: 180 },
+    { MenuItemID: 8, ItemName: "Crab & Garlic", Price: 180 },
+    { MenuItemID: 9, ItemName: "Chinese Sausage", Price: 180 },
+    { MenuItemID: 10, ItemName: "Tuna & Corn", Price: 180 },
+    { MenuItemID: 11, ItemName: "Bacon", Price: 180 },
+    { MenuItemID: 12, ItemName: "Sisig", Price: 180 },
+    { MenuItemID: 13, ItemName: "Cheese Burger", Price: 180 },
+    { MenuItemID: 14, ItemName: "Combo A", Price: 225 },
+    { MenuItemID: 15, ItemName: "Combo B", Price: 375 }
   ],
   Store: [
-    { StoreID: 1, StoreName: "Downtown", Location: "Central district", OperatingHours: "10:00 AM – 10:00 PM", ManagerName: "Jordan Lee" },
-    { StoreID: 2, StoreName: "Riverside", Location: "Riverside avenue", OperatingHours: "10:00 AM – 9:00 PM", ManagerName: "Casey Morgan" }
+    { StoreID: 1, StoreName: "PizzaHaus Sipocot", Location: "Sipocot, Camarines Sur", OperatingHours: "Daily, 10:00 AM - 9:00 PM", ManagerName: "" },
+    { StoreID: 2, StoreName: "PizzaHaus Naga City", Location: "Naga City, Camarines Sur", OperatingHours: "Daily, 10:00 AM - 9:00 PM", ManagerName: "" }
   ],
-  Ingredient: [
-    { IngredientID: 1, IngredientName: "Mozzarella", UnitMeasure: "kg", CurrentStock: 4.5, ReorderLevel: 8 },
-    { IngredientID: 2, IngredientName: "Tomato sauce", UnitMeasure: "litre", CurrentStock: 3, ReorderLevel: 6 },
-    { IngredientID: 3, IngredientName: "Pizza flour", UnitMeasure: "kg", CurrentStock: 22, ReorderLevel: 10 },
-    { IngredientID: 4, IngredientName: "Fresh basil", UnitMeasure: "bunch", CurrentStock: 2, ReorderLevel: 4 }
-  ],
-  Supplier: [
-    { SupplierID: 1, SupplierName: "Fresh Foods Co.", ContactInfo: "hello@freshfoods.example", Address: "18 Market Street" },
-    { SupplierID: 2, SupplierName: "Miller's Pantry", ContactInfo: "555-0191", Address: "42 Mill Road" }
-  ],
-  Delivery: [
-    { DeliveryID: 1, SupplierID: 1, StoreID: 1, DeliveryDate: "2026-11-19", TotalQuantity: 32 },
-    { DeliveryID: 2, SupplierID: 2, StoreID: 2, DeliveryDate: "2026-11-18", TotalQuantity: 45 }
-  ],
-  InventoryTransaction: [
-    { TransactionID: 1, IngredientID: 1, DeliveryID: 1, OrderID: 0, TransactionType: "Delivery", Quantity: 12, TransactionDate: "2026-11-19" },
-    { TransactionID: 2, IngredientID: 2, DeliveryID: 0, OrderID: 1001, TransactionType: "Usage", Quantity: 0.4, TransactionDate: "2026-11-19" }
-  ],
-  QualityIssue: [
-    { IssueID: 1, OrderID: 1002, Description: "Order arrived later than expected.", DateReported: "2026-11-19", ResolutionStatus: "In progress" },
-    { IssueID: 2, OrderID: 998, Description: "Incorrect topping on the order.", DateReported: "2026-11-18", ResolutionStatus: "Resolved" }
-  ],
-  DailyReport: [
-    { ReportID: 1, StoreID: 1, SupplierID: 1, ReportDate: "2026-11-18", TotalSales: 842.5, TotalOrders: 57, IngredientUsageSummary: "Flour 8kg, mozzarella 5kg, tomato sauce 4L" },
-    { ReportID: 2, StoreID: 2, SupplierID: 2, ReportDate: "2026-11-18", TotalSales: 615.0, TotalOrders: 42, IngredientUsageSummary: "Flour 6kg, mozzarella 4kg, tomato sauce 3L" }
-  ]
+  Ingredient: [],
+  Supplier: [],
+  Delivery: [],
+  InventoryTransaction: [],
+  QualityIssue: [],
+  DailyReport: []
 };
 
 const nav = document.querySelector("#side-nav");
@@ -141,30 +130,87 @@ let records;
 let activeTable = null;
 let editingId = null;
 let searchTerm = "";
+let adminRecordsError = null;
+let customerOrdersError = null;
 
-function cloneSeed() {
-  return JSON.parse(JSON.stringify(seedData));
+function cloneInitialRecords() {
+  return JSON.parse(JSON.stringify(initialRecords));
 }
 
 function loadRecords() {
   try {
+    if (localStorage.getItem(resetKey) !== "done") {
+      localStorage.removeItem(storageKey);
+      localStorage.setItem(resetKey, "done");
+    }
     const saved = localStorage.getItem(storageKey);
-    if (!saved) return cloneSeed();
+    if (!saved) return cloneInitialRecords();
     const parsed = JSON.parse(saved);
-    if (!parsed || typeof parsed !== "object" || Object.keys(schema).some((key) => !Array.isArray(parsed[key]))) {
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) ||
+        ["MenuItem", "Store"].some((key) => !Array.isArray(parsed[key])) ||
+        Object.keys(parsed).some((key) => parsed[key] !== undefined && !Array.isArray(parsed[key]))) {
       throw new Error("Saved admin data has an unexpected format.");
     }
-    return parsed;
+    const normalized = Object.fromEntries(Object.keys(schema).map((key) => [
+      key,
+      key === "CustomerOrder" || key === "OrderDetails"
+        ? []
+        : Array.isArray(parsed[key]) ? parsed[key] : initialRecords[key]
+    ]));
+    const hasRemovedData = Object.keys(parsed).some((key) => !Object.prototype.hasOwnProperty.call(schema, key))
+      || Object.keys(schema).some((key) => !Array.isArray(parsed[key]))
+      || (Array.isArray(parsed.CustomerOrder) && parsed.CustomerOrder.length > 0)
+      || (Array.isArray(parsed.OrderDetails) && parsed.OrderDetails.length > 0);
+    if (hasRemovedData) localStorage.setItem(storageKey, JSON.stringify(normalized));
+    return normalized;
   } catch (error) {
     console.error("Unable to load admin records.", error);
-    showNotice("Could not load saved data. The sample records are shown; changes may not persist.", true);
-    return cloneSeed();
+    adminRecordsError = new Error("Saved admin records could not be loaded. Project menu and store data are shown; changes may not persist.");
+    return cloneInitialRecords();
+  }
+}
+
+function refreshCustomerOrders() {
+  try {
+    if (!window.PizzaHausData || typeof window.PizzaHausData.getOrders !== "function") {
+      throw new Error("Customer order storage is unavailable. Reload the page and try again.");
+    }
+    const orders = window.PizzaHausData.getOrders();
+    if (!Array.isArray(orders)) throw new Error("Saved customer orders have an unexpected format.");
+    records.CustomerOrder = orders;
+    records.OrderDetails = orders.flatMap((order) => {
+      if (!Array.isArray(order.OrderItems)) return [];
+      return order.OrderItems.map((item, index) => {
+        const menuItem = records.MenuItem.find((entry) => entry.ItemName === item.ItemName);
+        return {
+          OrderDetailID: `${order.OrderID}-${index + 1}`,
+          OrderID: order.OrderID,
+          MenuItemID: menuItem ? menuItem.MenuItemID : "",
+          Quantity: item.Quantity,
+          Price: item.Price
+        };
+      });
+    });
+    customerOrdersError = null;
+    return true;
+  } catch (error) {
+    console.error("Unable to load customer orders in admin.", error);
+    customerOrdersError = error instanceof Error
+      ? error
+      : new Error("Customer orders could not be loaded from this browser.");
+    records.CustomerOrder = [];
+    records.OrderDetails = [];
+    return false;
   }
 }
 
 function saveRecords() {
   try {
-    localStorage.setItem(storageKey, JSON.stringify(records));
+    const savedRecords = Object.fromEntries(Object.keys(schema).map((key) => [
+      key,
+      key === "CustomerOrder" ? [] : records[key]
+    ]));
+    localStorage.setItem(storageKey, JSON.stringify(savedRecords));
     return true;
   } catch (error) {
     console.error("Unable to save admin records.", error);
@@ -200,11 +246,31 @@ function singularLabel(table) {
   return schema[table].label.toLowerCase().replace(/ies$/, "y").replace(/s$/, "");
 }
 
+function isReadOnlyTable(table) {
+  return table === "CustomerOrder" || (Object.prototype.hasOwnProperty.call(schema, table) && schema[table].readOnly === true);
+}
+
 function renderNav() {
   nav.innerHTML = `<a class="nav-link active" href="#overview" data-table=""><span class="nav-icon">⌂</span>Overview</a>` +
-    Object.entries(schema).map(([key, config]) =>
+    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">WORKSPACE</p>` +
+    Object.entries(schema).filter(([key]) => !["Store", "Supplier", "Ingredient", "MenuItem", "Delivery", "InventoryTransaction", "DailyReport", "QualityIssue"].includes(key)).map(([key, config]) =>
       `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`
-    ).join("");
+    ).join("") +
+    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">INVENTORY</p>` +
+    ["Ingredient", "MenuItem"].map((key) => {
+      const config = schema[key];
+      return `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`;
+    }).join("") +
+    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">OPERATIONS</p>` +
+    ["Delivery", "InventoryTransaction", "DailyReport", "QualityIssue"].map((key) => {
+      const config = schema[key];
+      return `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`;
+    }).join("") +
+    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">LOCATIONS</p>` +
+    ["Store", "Supplier"].map((key) => {
+      const config = schema[key];
+      return `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`;
+    }).join("");
 
   nav.querySelectorAll(".nav-link").forEach((link) => {
     link.addEventListener("click", (event) => {
@@ -225,11 +291,13 @@ function navigate(table) {
   const isOverview = !table;
   overviewPanel.hidden = !isOverview;
   dataPanel.hidden = isOverview;
-  document.querySelector("#add-record").hidden = isOverview;
+  document.querySelector("#add-record").hidden = isOverview || isReadOnlyTable(table);
   document.querySelector("#breadcrumb-current").textContent = isOverview ? "Overview" : schema[table].label;
   document.querySelector("#page-title").textContent = isOverview ? "Overview" : schema[table].label;
   document.querySelector("#page-subtitle").textContent = isOverview
     ? "A snapshot of your restaurant operations."
+    : table === "CustomerOrder"
+    ? "Customer orders saved in this browser."
     : `Manage ${schema[table].label.toLowerCase()} and their related records.`;
   document.querySelector("#page-eyebrow").textContent = isOverview ? "PIZZAHAUS MANAGEMENT" : "DATA MANAGEMENT";
   nav.querySelectorAll(".nav-link").forEach((link) => link.classList.toggle("active", (link.dataset.table || null) === table));
@@ -239,9 +307,7 @@ function navigate(table) {
 }
 
 function renderOverview() {
-  const openIssues = records.QualityIssue.filter((row) => !/resolved|closed/i.test(row.ResolutionStatus || "")).length;
-  const lowStock = records.Ingredient.filter((row) => Number(row.CurrentStock) <= Number(row.ReorderLevel)).length;
-  const reportSales = records.DailyReport.reduce((sum, row) => sum + Number(row.TotalSales || 0), 0);
+  const orderSales = records.CustomerOrder.reduce((sum, order) => sum + Number(order.Total || 0), 0);
   const manilaDateParts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Manila",
     year: "numeric",
@@ -249,14 +315,14 @@ function renderOverview() {
     day: "2-digit"
   }).formatToParts(new Date());
   const today = `${manilaDateParts.find((part) => part.type === "year").value}-${manilaDateParts.find((part) => part.type === "month").value}-${manilaDateParts.find((part) => part.type === "day").value}`;
-  const ordersToday = records.CustomerOrder.filter((order) => String(order.OrderDateTime || "").slice(0, 10) === today).length;
+  const ordersToday = customerOrdersError
+    ? "Unavailable"
+    : records.CustomerOrder.filter((order) => String(order.OrderDateTime || "").slice(0, 10) === today).length;
   const metrics = [
-    ["Orders today", ordersToday, "Across all stores", "▣"],
-    ["Low stock", lowStock, lowStock ? "Need attention" : "Stock levels look good", "↕"],
-    ["Total sales", `₱${reportSales.toFixed(2)}`, "From saved daily reports", "₱"]
+    ["Orders today", ordersToday, customerOrdersError ? "Customer orders could not be loaded" : "From this browser's customer orders", "▣"],
+    ["Order value", customerOrdersError ? "Unavailable" : `₱${orderSales.toFixed(2)}`, "From this browser's customer orders", "₱"]
   ];
-  const orders = [...records.CustomerOrder].sort((a, b) => String(b.OrderDateTime).localeCompare(String(a.OrderDateTime))).slice(0, 5);
-  const issues = records.QualityIssue.filter((row) => !/resolved|closed/i.test(row.ResolutionStatus || "")).slice(0, 4);
+  const orders = customerOrdersError ? [] : [...records.CustomerOrder].sort((a, b) => String(b.OrderDateTime).localeCompare(String(a.OrderDateTime))).slice(0, 5);
   overviewPanel.innerHTML = `
     <div class="metrics-grid">${metrics.map(([label, value, hint, icon]) => `
       <article class="metric-card"><div class="metric-top">${label}<span class="metric-icon" aria-hidden="true">${icon}</span></div>
@@ -265,19 +331,14 @@ function renderOverview() {
       <section class="overview-card">
         <div class="card-heading"><h2>Recent orders</h2><a class="text-link" href="#CustomerOrder" data-jump="CustomerOrder">View all →</a></div>
         ${orders.length ? `<div class="table-wrap"><table class="overview-table"><thead><tr><th>ORDER</th><th>CUSTOMER</th><th>STORE</th><th>METHOD</th><th>STATUS</th></tr></thead><tbody>
-          ${orders.map((order) => `<tr><td>#${formatValue(order.OrderID)}</td><td><span class="order-name">${formatValue(order.CustomerName)}</span><span class="sub-cell">${formatValue(order.OrderDateTime)}</span></td><td>${formatValue(order.StoreID)}</td><td>${formatValue(order.PickupMethod)}</td><td><span class="status-chip warning">Received</span></td></tr>`).join("")}
-        </tbody></table></div>` : `<div class="empty-state">No orders yet.</div>`}
+          ${orders.map((order) => `<tr><td>${formatValue(order.Reference || order.OrderID)}</td><td><span class="order-name">${formatValue(order.CustomerName)}</span><span class="sub-cell">${formatValue(order.OrderDateTime)}</span></td><td>${formatValue(order.StoreName || order.StoreID)}</td><td>${formatValue(order.PickupMethod)}</td><td>${renderStatusChip(order.Status || "Received")}</td></tr>`).join("")}
+        </tbody></table></div>` : `<div class="empty-state">${customerOrdersError ? "Customer orders could not be loaded." : "No customer orders saved in this browser yet."}</div>`}
       </section>
       <section class="overview-card">
-        <div class="card-heading"><h2>Needs attention</h2><a class="text-link" href="#Ingredient" data-jump="Ingredient">Inventory →</a></div>
-        <div class="stock-list">${records.Ingredient.filter((row) => Number(row.CurrentStock) <= Number(row.ReorderLevel)).map((item) =>
-          `<div class="stock-row"><div><strong>${formatValue(item.IngredientName)}</strong><span>${formatValue(item.CurrentStock)} ${formatValue(item.UnitMeasure)} in stock · Reorder at ${formatValue(item.ReorderLevel)}</span></div><span class="status-chip danger">LOW STOCK</span></div>`
-        ).join("") || `<div class="empty-state">All ingredient levels are looking good.</div>`}
-        </div>
-        <div class="card-heading"><h2>Open quality issues</h2><a class="text-link" href="#QualityIssue" data-jump="QualityIssue">${openIssues} open</a></div>
-        <div class="stock-list">${issues.map((issue) =>
-          `<div class="stock-row"><div><strong>Order #${formatValue(issue.OrderID)}</strong><span>${formatValue(issue.Description)}</span></div>${renderStatusChip(issue.ResolutionStatus)}</div>`
-        ).join("") || `<div class="empty-state">No open quality issues.</div>`}</div>
+        <div class="card-heading"><h2>Stores</h2><a class="text-link" href="#Store" data-jump="Store">Manage stores →</a></div>
+        <div class="stock-list">${records.Store.map((store) =>
+        `<div class="stock-row"><div><strong>${formatValue(store.StoreName)}</strong><span>${formatValue(store.Location)}</span></div><span class="store-hours">${formatValue(store.OperatingHours)}</span></div>`
+        ).join("") || `<div class="empty-state">No stores yet.</div>`}</div>
       </section>
     </div>`;
   overviewPanel.querySelectorAll("[data-jump]").forEach((link) => link.addEventListener("click", (event) => {
@@ -286,20 +347,58 @@ function renderOverview() {
   }));
 }
 
+function renderOrderItemsCell(order) {
+  const items = Array.isArray(order.OrderItems) ? order.OrderItems : [];
+  if (!items.length) return '<span class="muted-copy">No items</span>';
+
+  const total = Number(order.Total || items.reduce((sum, item) =>
+    sum + Number(item.Quantity || 0) * Number(item.Price || 0), 0));
+  const itemRows = items.map((item) => {
+    const toppings = Array.isArray(item.Toppings)
+      ? item.Toppings.map(formatValue).join(", ")
+      : formatValue(item.Toppings);
+    const options = [
+      item.Size ? `${formatValue(item.Size)} in` : "",
+      item.Crust ? formatValue(item.Crust) : "",
+      toppings && toppings !== "—" ? `Toppings: ${toppings}` : ""
+    ].filter(Boolean).join(" · ");
+    return `<li><span>${formatValue(item.Quantity)} × ${formatValue(item.ItemName)} · ₱${Number(item.Price || 0).toFixed(2)}</span>${options ? `<span class="sub-cell">${options}</span>` : ""}</li>`;
+  });
+  return `<div class="order-items-summary"><ul>${itemRows.join("")}</ul><strong>Order total: ₱${total.toFixed(2)}</strong></div>`;
+}
+
 function renderTable() {
   const config = schema[activeTable];
-  const visibleFields = config.fields.filter(([key]) => key !== config.id);
+  const hasOrderItems = activeTable === "CustomerOrder";
+  const readOnly = isReadOnlyTable(activeTable);
+  const visibleColumnCount = config.fields.length + (hasOrderItems ? 1 : 0) + (readOnly ? 0 : 1);
   document.querySelector("#table-title").textContent = config.label;
-  document.querySelector("#table-head").innerHTML = `<tr>${config.fields.map(([key]) => `<th>${escapeHtml(key)}</th>`).join("")}<th class="actions-cell">ACTIONS</th></tr>`;
-  const filtered = records[activeTable].filter((record) =>
-    Object.values(record).some((value) => String(value ?? "").toLowerCase().includes(searchTerm))
-  );
+  document.querySelector("#table-head").innerHTML = `<tr>${config.fields.map(([, , label]) => `<th>${escapeHtml(label)}</th>`).join("")}${hasOrderItems ? "<th>ORDER ITEMS</th>" : ""}${readOnly ? "" : '<th class="actions-cell">ACTIONS</th>'}</tr>`;
+  if ((hasOrderItems || activeTable === "OrderDetails") && customerOrdersError) {
+    document.querySelector("#record-count").textContent = "Unavailable";
+    document.querySelector("#table-summary").textContent = "Customer order data could not be loaded.";
+    document.querySelector("#table-body").innerHTML = `<tr><td colspan="${visibleColumnCount}" class="empty-state">${formatValue(customerOrdersError.message)}</td></tr>`;
+    return;
+  }
+  const filtered = records[activeTable].filter((record) => {
+    const matchesRecord = Object.values(record).some((value) => String(value ?? "").toLowerCase().includes(searchTerm));
+    const matchesOrderItems = hasOrderItems && Array.isArray(record.OrderItems)
+      && record.OrderItems.some((item) =>
+        Object.values(item).some((value) => String(value ?? "").toLowerCase().includes(searchTerm))
+      );
+    const menuItem = activeTable === "OrderDetails"
+      ? records.MenuItem.find((item) => String(item.MenuItemID) === String(record.MenuItemID))
+      : null;
+    const matchesMenuItem = menuItem && String(menuItem.ItemName || "").toLowerCase().includes(searchTerm);
+    return matchesRecord || matchesOrderItems || matchesMenuItem;
+  });
   document.querySelector("#record-count").textContent = `${filtered.length} ${filtered.length === 1 ? "record" : "records"}`;
   document.querySelector("#table-summary").textContent = `${filtered.length} of ${records[activeTable].length} records`;
   document.querySelector("#table-body").innerHTML = filtered.length
-    ? filtered.map((record) => `<tr>${config.fields.map(([key]) => `<td>${renderTableCell(activeTable, record, key)}</td>`).join("")}
-      <td class="actions-cell"><button class="row-action" type="button" data-edit="${escapeHtml(record[config.id])}">Edit</button><button class="row-action delete" type="button" data-delete="${escapeHtml(record[config.id])}">Delete</button></td></tr>`).join("")
-    : `<tr><td colspan="${visibleFields.length + 2}" class="empty-state">No matching records found.</td></tr>`;
+    ? filtered.map((record) => `<tr>${config.fields.map(([key]) => `<td>${renderTableCell(record, key)}</td>`).join("")}
+      ${hasOrderItems ? `<td>${renderOrderItemsCell(record)}</td>` : ""}
+      ${readOnly ? "" : `<td class="actions-cell"><button class="row-action" type="button" data-edit="${escapeHtml(record[config.id])}">Edit</button><button class="row-action delete" type="button" data-delete="${escapeHtml(record[config.id])}">Delete</button></td>`}</tr>`).join("")
+    : `<tr><td colspan="${visibleColumnCount}" class="empty-state">No matching records found.</td></tr>`;
 
   document.querySelector("#table-body").querySelectorAll("[data-edit]").forEach((button) =>
     button.addEventListener("click", () => openDialog(button.dataset.edit))
@@ -321,16 +420,20 @@ function renderStatusChip(value) {
   return `<span class="status-chip ${statusTone(value)}">${formatValue(value)}</span>`;
 }
 
-function renderTableCell(table, record, key) {
-  if (key === "ResolutionStatus" || /status$/i.test(key)) return renderStatusChip(record[key]);
-  if (table === "Ingredient" && key === "CurrentStock" &&
-      Number(record.CurrentStock) <= Number(record.ReorderLevel)) {
-    return `<span class="status-chip danger">${formatValue(record[key])}</span>`;
+function renderTableCell(record, key) {
+  if (/status$/i.test(key)) return renderStatusChip(record[key]);
+  if (activeTable === "OrderDetails" && key === "MenuItemID") {
+    const menuItem = records.MenuItem.find((item) => String(item.MenuItemID) === String(record.MenuItemID));
+    return menuItem ? `${formatValue(record[key])} · ${formatValue(menuItem.ItemName)}` : formatValue(record[key]);
   }
   return formatValue(record[key]);
 }
 
 function openDialog(id) {
+  if (isReadOnlyTable(activeTable)) {
+    showNotice("This data is read-only in admin.", true);
+    return;
+  }
   editingId = id === undefined ? null : String(id);
   const config = schema[activeTable];
   const record = editingId === null
@@ -342,7 +445,7 @@ function openDialog(id) {
   }
   document.querySelector("#dialog-title").textContent = `${editingId === null ? "Add" : "Edit"} ${singularLabel(activeTable)}`;
   document.querySelector("#form-fields").innerHTML = config.fields.map(([key, type, label, options]) => {
-    const required = key === config.id || key.endsWith("Name") || key === "ItemName" || key === "Description";
+    const required = key === config.id || (key.endsWith("Name") && key !== "ManagerName") || key === "ItemName" || key === "Description";
     const inputId = `field-${key}`;
     const value = record[key] ?? "";
     const common = `id="${inputId}" name="${escapeHtml(key)}" ${required ? "required" : ""} ${key === config.id && editingId !== null ? "disabled" : ""}`;
@@ -360,6 +463,10 @@ function nextId(table) {
 }
 
 function deleteRecord(id) {
+  if (isReadOnlyTable(activeTable)) {
+    showNotice("This data is read-only in admin.", true);
+    return;
+  }
   const config = schema[activeTable];
   const record = records[activeTable].find((item) => String(item[config.id]) === String(id));
   if (!record || !window.confirm(`Delete ${singularLabel(activeTable)} #${id}? This cannot be undone.`)) return;
@@ -396,6 +503,10 @@ document.querySelector("#sidebar-collapse").addEventListener("click", (event) =>
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!activeTable) return;
+  if (isReadOnlyTable(activeTable)) {
+    showNotice("This data is read-only in admin.", true);
+    return;
+  }
   const config = schema[activeTable];
   const values = Object.fromEntries(new FormData(form).entries());
   config.fields.forEach(([key, type]) => {
@@ -403,6 +514,7 @@ form.addEventListener("submit", (event) => {
       values[key] = Number(values[key]);
     }
   });
+
   if (editingId !== null) {
     const index = records[activeTable].findIndex((item) => String(item[config.id]) === editingId);
     if (index < 0) {
@@ -427,7 +539,21 @@ window.addEventListener("hashchange", () => {
   if (nextTable !== activeTable) navigate(nextTable);
 });
 
+window.addEventListener("storage", (event) => {
+  const data = window.PizzaHausData;
+  if (!data || event.key !== data.orderStorageKey) return;
+  const ordersLoaded = refreshCustomerOrders();
+  renderNav();
+  if (activeTable === "CustomerOrder" || activeTable === "OrderDetails") renderTable();
+  else if (activeTable === null) renderOverview();
+  if (!ordersLoaded) showNotice(customerOrdersError.message, true);
+});
+
 records = loadRecords();
+refreshCustomerOrders();
 renderNav();
-const initialTable = decodeURIComponent(window.location.hash.slice(1));
-navigate(Object.prototype.hasOwnProperty.call(schema, initialTable) ? initialTable : null);
+const requestedTable = decodeURIComponent(window.location.hash.slice(1));
+const initialTable = Object.prototype.hasOwnProperty.call(schema, requestedTable) ? requestedTable : null;
+navigate(initialTable);
+const startupErrors = [adminRecordsError, customerOrdersError].filter(Boolean);
+if (startupErrors.length) showNotice(startupErrors.map((error) => error.message).join(" "), true);

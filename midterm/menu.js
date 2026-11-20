@@ -10,6 +10,9 @@ if (menuSearch && categoryButtons.length) {
   const locationField = document.querySelector("#delivery-location");
   const phoneField = document.querySelector("#customer-phone");
   const branchField = document.querySelector("#order-branch");
+  const paymentField = document.querySelector("#payment-method");
+  const customerNameField = document.querySelector("#customer-name");
+  const deliveryNotesField = document.querySelector("#delivery-notes");
   const favoritesPanel = document.querySelector("#favorites-panel");
   let availability = data.getAvailability();
   const orders = new Map();
@@ -45,6 +48,29 @@ if (menuSearch && categoryButtons.length) {
     status.classList.toggle("text-emerald-700", !isError);
   }
 
+  function persistDraft(clearWhenEmpty) {
+    const items = [...orders.values()];
+    try {
+      if (!items.length) {
+        if (clearWhenEmpty) data.clearDraft();
+        return;
+      }
+      data.saveDraft({
+        items,
+        customerName: customerNameField.value,
+        phone: phoneField.value,
+        fulfillment: document.querySelector('input[name="fulfillment"]:checked').value,
+        location: locationField.value,
+        notes: deliveryNotesField.value,
+        branch: branchField.value,
+        paymentMethod: paymentField.value,
+        savedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      showStatus(error.message, true);
+    }
+  }
+
   function renderFavorites() {
     document.querySelector("#favorite-count").textContent = String(favorites.length);
     const favoriteItems = menuItems.filter(({ item }) => favorites.includes(item.dataset.itemName));
@@ -77,7 +103,7 @@ if (menuSearch && categoryButtons.length) {
     button.setAttribute("aria-label", `${favorite ? "Remove" : "Save"} ${item.dataset.itemName} ${favorite ? "from" : "to"} favorites`);
   }
 
-  function updateOrder() {
+  function updateOrder(clearWhenEmpty) {
     const entries = [...orders.values()];
     const itemCount = entries.reduce((total, order) => total + order.quantity, 0);
     const total = entries.reduce((sum, order) => sum + order.unitPrice * order.quantity, 0);
@@ -86,6 +112,16 @@ if (menuSearch && categoryButtons.length) {
     document.querySelector("#cart-total").textContent = pesos(total);
     const list = document.querySelector("#order-list");
     document.querySelector("#place-order").disabled = !entries.length;
+    if (entries.length) {
+      list.classList.remove("hidden");
+      document.querySelector("#order-total").parentElement.classList.remove("hidden");
+      document.querySelector("#place-order").classList.remove("hidden");
+      document.querySelector("#order-confirmation").classList.add("hidden");
+      document.querySelector("#order-modal-title").textContent = "Your cart & order history";
+      const isDelivery = document.querySelector('input[name="fulfillment"]:checked').value === "delivery";
+      deliveryDetails.classList.toggle("hidden", !isDelivery);
+      locationField.required = isDelivery;
+    }
     list.innerHTML = entries.length ? entries.map((order, index) => `
       <div class="flex items-center justify-between gap-3 rounded-xl bg-orange-50 p-4 dark:bg-stone-950">
         <div><strong>${escapeHtml(order.name)}</strong>
@@ -95,6 +131,28 @@ if (menuSearch && categoryButtons.length) {
         <button class="remove-order rounded-lg border border-red-800 px-3 py-2 text-sm font-bold text-red-800" type="button" data-order-index="${index}" aria-label="Remove ${escapeHtml(order.name)}">Remove</button>
       </div>`).join("")
       : '<p class="rounded-xl bg-orange-50 p-4 text-center text-stone-600 dark:bg-stone-950 dark:text-stone-300">No items yet. Add a pizza to get started.</p>';
+    persistDraft(clearWhenEmpty);
+  }
+
+  function renderOrderHistory() {
+    const historyPanel = document.querySelector("#order-history");
+    try {
+      const history = data.getOrders().slice().reverse();
+      historyPanel.innerHTML = history.length ? history.map((order) => `
+        <article class="rounded-xl border border-orange-100 p-3 dark:border-stone-700">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <strong>${escapeHtml(order.Reference || "Order")}</strong>
+            <span class="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold dark:bg-stone-800">${escapeHtml(order.Status || "Received")}</span>
+          </div>
+          <p class="mt-2 text-sm">${escapeHtml((order.OrderItems || []).map((item) => `${item.Quantity} × ${item.ItemName}`).join(", "))}</p>
+          <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">${escapeHtml(order.OrderDateTime || "")} · ${escapeHtml(order.PaymentMethod || "Payment not selected")} · ${pesos(order.Total || 0)}</p>
+          <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">${escapeHtml(order.PaymentStatus || "Demo order")}</p>
+        </article>`).join("")
+        : '<p class="rounded-xl bg-orange-50 p-3 text-sm text-stone-600 dark:bg-stone-950 dark:text-stone-300">No submitted orders saved in this browser yet.</p>';
+    } catch (error) {
+      historyPanel.textContent = error.message;
+      showStatus(error.message, true);
+    }
   }
 
   function currentCustomizedPrice() {
@@ -120,6 +178,46 @@ if (menuSearch && categoryButtons.length) {
       quantity: (existing?.quantity || 0) + quantity
     });
     updateOrder();
+  }
+
+  function restoreDraft() {
+    try {
+      const draft = data.getDraft();
+      if (!draft) return;
+      if (draft.items.some((item) => !item || typeof item.name !== "string" ||
+          !Array.isArray(item.toppings) || !Number.isFinite(Number(item.unitPrice)) ||
+          !Number.isFinite(Number(item.quantity)) || Number(item.quantity) < 1)) {
+        throw new Error("Your saved order draft contains invalid items and could not be restored.");
+      }
+      draft.items.forEach((item) => {
+        const restoredItem = {
+          ...item,
+          unitPrice: Number(item.unitPrice),
+          quantity: Number(item.quantity),
+          toppings: item.toppings.map(String)
+        };
+        const key = [restoredItem.name, restoredItem.size, restoredItem.crust, ...restoredItem.toppings].join("|");
+        orders.set(key, restoredItem);
+      });
+      customerNameField.value = draft.customerName || "";
+      phoneField.value = draft.phone || "";
+      locationField.value = draft.location || "";
+      deliveryNotesField.value = draft.notes || "";
+      if ([...branchField.options].some((option) => option.value === draft.branch)) {
+        branchField.value = draft.branch;
+      }
+      if ([...paymentField.options].some((option) => option.value === draft.paymentMethod)) {
+        paymentField.value = draft.paymentMethod;
+      }
+      const fulfillment = fulfillmentOptions.find((option) => option.value === draft.fulfillment);
+      if (fulfillment) fulfillment.checked = true;
+      fulfillmentOptions[0]?.dispatchEvent(new Event("change"));
+      branchField.dispatchEvent(new Event("change"));
+      updateOrder();
+      showStatus("Your saved cart and checkout details were restored.", false);
+    } catch (error) {
+      showStatus(error.message, true);
+    }
   }
 
   function openBuyModal(item) {
@@ -277,7 +375,9 @@ if (menuSearch && categoryButtons.length) {
   branchField.addEventListener("change", () => {
     const city = branchField.value === "1" ? "Sipocot" : "Naga+City";
     document.querySelector("#branch-directions").href = `page4.html?branch=${encodeURIComponent(city.replace("+", " "))}`;
+    persistDraft();
   });
+  paymentField.addEventListener("change", persistDraft);
   document.querySelector("#show-favorites").addEventListener("click", () => favoritesPanel.classList.toggle("hidden"));
   document.querySelector("[data-show-combos]").addEventListener("click", () => {
     categoryButtons.find((button) => button.dataset.category === "Special Pizza Combo").click();
@@ -314,15 +414,21 @@ if (menuSearch && categoryButtons.length) {
     const isDelivery = document.querySelector('input[name="fulfillment"]:checked').value === "delivery";
     deliveryDetails.classList.toggle("hidden", !isDelivery);
     locationField.required = isDelivery;
+    persistDraft();
   }));
   fulfillmentOptions[0]?.dispatchEvent(new Event("change"));
+  [customerNameField, phoneField, locationField, deliveryNotesField].forEach((field) => {
+    field.addEventListener("input", persistDraft);
+  });
+  restoreDraft();
+  renderOrderHistory();
 
   document.querySelector("#order-list").addEventListener("click", (event) => {
     const button = event.target.closest(".remove-order");
     if (!button) return;
     const order = [...orders.values()][Number(button.dataset.orderIndex)];
     if (order) orders.delete([order.name, order.size, order.crust, ...order.toppings].join("|"));
-    updateOrder();
+    updateOrder(true);
   });
 
   document.querySelector("#place-order").addEventListener("click", () => {
@@ -332,6 +438,7 @@ if (menuSearch && categoryButtons.length) {
     const phone = phoneField.value.trim();
     const location = locationField.value.trim();
     const deliveryNotes = document.querySelector("#delivery-notes").value.trim();
+    const paymentMethod = paymentField.value;
     if (!customerName || !phone || (fulfillment === "delivery" && !location)) {
       deliveryStatus.textContent = "Enter your name and contact number; delivery orders also need a delivery location.";
       deliveryStatus.classList.remove("hidden");
@@ -353,6 +460,8 @@ if (menuSearch && categoryButtons.length) {
       PickupMethod: fulfillment === "pickup" ? "Pickup" : "Delivery",
       DeliveryLocation: fulfillment === "delivery" ? location : "",
       Notes: deliveryNotes,
+      PaymentMethod: paymentMethod,
+      PaymentStatus: paymentMethod === "Cash" ? "Pay on pickup/delivery" : "Demo only - not processed",
       OrderDateTime: manilaDateTime(),
       OrderItems: entries.map((entry) => ({
         ItemName: entry.name, Quantity: entry.quantity, Price: entry.unitPrice,
@@ -370,19 +479,21 @@ if (menuSearch && categoryButtons.length) {
       return;
     }
     orders.clear();
-    updateOrder();
+    updateOrder(true);
     deliveryStatus.classList.add("hidden");
     document.querySelector("#place-order").classList.add("hidden");
     document.querySelector("#order-confirmation").classList.remove("hidden");
     document.querySelector("#order-confirmation").innerHTML = `
       <p class="font-bold text-emerald-800 dark:text-emerald-300">Order received</p>
       <p class="mt-2">Your reference number is <strong>${escapeHtml(reference)}</strong>.</p>
-      <p class="mt-1 text-sm">Keep it to check your order status. ${escapeHtml(order.StoreName)} · ${escapeHtml(order.PickupMethod)}</p>
-      <a class="mt-4 inline-flex rounded-full bg-red-800 px-4 py-2 font-bold text-white" href="track-order.html?reference=${encodeURIComponent(reference)}">Track this order</a>`;
+      <p class="mt-1 text-sm">Your order is saved in the history below. ${escapeHtml(order.StoreName)} · ${escapeHtml(order.PickupMethod)} · ${escapeHtml(paymentMethod)}</p>
+      <p class="mt-1 text-sm">${escapeHtml(order.PaymentStatus)}</p>
+      `;
     document.querySelector("#order-modal-title").textContent = "Order confirmed";
     document.querySelector("#order-list").classList.add("hidden");
     document.querySelector("#order-total").parentElement.classList.add("hidden");
     document.querySelector("#delivery-details").classList.add("hidden");
+    renderOrderHistory();
   });
   [buyModal, orderModal].forEach((modal) => modal.addEventListener("click", (event) => {
     if (event.target === modal) setModalVisibility(modal, false);
@@ -395,7 +506,8 @@ if (menuSearch && categoryButtons.length) {
   });
   window.addEventListener("storage", (event) => {
     if (event.key === data.orderStorageKey) {
-      showStatus("Order status updated in the admin dashboard.");
+      showStatus("Order status updated by staff.");
+      renderOrderHistory();
     }
     if (event.key === data.availabilityStorageKey) applyAvailability();
   });

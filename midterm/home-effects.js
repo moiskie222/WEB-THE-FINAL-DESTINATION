@@ -100,20 +100,3 @@ if (heroWord) {
   reducedMotion.addEventListener("change", startWords);
   startWords();
 }
-
-if (hero && heroMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-  hero.addEventListener("pointermove", (event) => {
-    if (reducedMotion.matches) return;
-    const bounds = hero.getBoundingClientRect();
-    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-    heroMedia.style.transform = `scale(1.08) translate3d(${x * -12}px, ${y * -12}px, 0)`;
-  });
-
-  hero.addEventListener("pointerleave", () => {
-    heroMedia.style.transform = "";
-  });
-  reducedMotion.addEventListener("change", (event) => {
-    if (event.matches) heroMedia.style.transform = "";
-  });
-}

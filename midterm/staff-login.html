@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f7f4">
+  <title>Staff sign in | PizzaHaus</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="staff.css">
+  <script src="staff-auth.js" defer></script>
+  <script src="staff-login.js" defer></script>
+</head>
+<body>
+  <main class="staff-auth">
+    <section class="staff-auth-card" aria-labelledby="staff-login-title">
+      <a class="brand staff-auth-brand" href="index.html">
+        <img class="brand-mark" src="images/admin-pizzahaus-logo.webp" alt="">
+        <span><strong>PizzaHaus</strong><small>STAFF PORTAL</small></span>
+      </a>
+      <p class="eyebrow">STAFF ACCESS</p>
+      <h1 id="staff-login-title">Sign in</h1>
+      <p class="page-subtitle">Staff accounts only. Customers can continue ordering without signing in.</p>
+
+      <form id="staff-login-form" class="staff-login-form">
+        <label for="staff-username">Email
+          <input id="staff-username" name="username" type="email" autocomplete="username" required>
+        </label>
+        <label for="staff-password">Password
+          <input id="staff-password" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <p id="staff-login-error" class="staff-login-error" role="alert" hidden></p>
+        <button class="primary-button" type="submit">Sign in to demo</button>
+      </form>
+
+      <aside class="demo-credentials" aria-label="Demo sign-in credentials">
+        <strong>Demo credentials</strong>
+        <p><b>Admin:</b> admin@pizzahaus.demo / AdminDemo123!</p>
+        <p><b>Clerk:</b> clerk@pizzahaus.demo / ClerkDemo123!</p>
+        <p>These public demo credentials are not secure and must not be used for real accounts.</p>
+      </aside>
+      <a class="staff-back-link" href="index.html">← Back to PizzaHaus</a>
+    </section>
+  </main>
+</body>
+</html>
