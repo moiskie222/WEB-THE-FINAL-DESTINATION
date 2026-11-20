@@ -2,116 +2,227 @@ const menuSearch = document.querySelector("#menu-search");
 const categoryButtons = [...document.querySelectorAll(".category-filter")];
 
 if (menuSearch && categoryButtons.length) {
+  const data = window.PizzaHausData;
   const buyModal = document.querySelector("#buy-modal");
   const orderModal = document.querySelector("#order-modal");
   const deliveryDetails = document.querySelector("#delivery-details");
   const fulfillmentOptions = [...document.querySelectorAll('input[name="fulfillment"]')];
   const locationField = document.querySelector("#delivery-location");
-  const phoneField = document.querySelector("#delivery-phone");
+  const phoneField = document.querySelector("#customer-phone");
+  const branchField = document.querySelector("#order-branch");
+  const favoritesPanel = document.querySelector("#favorites-panel");
+  let availability = data.getAvailability();
   const orders = new Map();
+  let favorites = data.getFavorites();
   let selectedItem = null;
   let buyQuantity = 1;
+  let selectedCategory = "all";
 
-  const pesos = (value) => `P${value.toFixed(2)}`;
+  const pesos = (value) => `P${Number(value).toFixed(2)}`;
+  const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
   const setModalVisibility = (modal, visible) => {
-    modal?.classList.toggle("hidden", !visible);
-    modal?.classList.toggle("flex", visible);
-    if (modal) modal.style.display = visible ? "flex" : "none";
+    if (!modal) return;
+    modal.classList.toggle("hidden", !visible);
+    modal.classList.toggle("flex", visible);
+    modal.style.display = visible ? "flex" : "none";
+  };
+  const optionExtra = (select) => Number(select.selectedOptions[0].dataset.extra || 0);
+  const manilaDateTime = () => {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Manila", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+    }).formatToParts(new Date());
+    const value = (type) => parts.find((part) => part.type === type).value;
+    return `${value("year")}-${value("month")}-${value("day")}T${value("hour")}:${value("minute")}`;
   };
 
-  const updateOrder = () => {
+  function showStatus(message, isError) {
+    const status = document.querySelector("#menu-status");
+    status.textContent = message;
+    status.classList.toggle("text-red-700", Boolean(isError));
+    status.classList.toggle("text-emerald-700", !isError);
+  }
+
+  function renderFavorites() {
+    document.querySelector("#favorite-count").textContent = String(favorites.length);
+    const favoriteItems = menuItems.filter(({ item }) => favorites.includes(item.dataset.itemName));
+    favoritesPanel.innerHTML = favoriteItems.length
+      ? `<div class="flex flex-wrap items-center justify-between gap-3"><strong>Your saved pizzas</strong><button id="clear-favorites" class="text-sm font-bold text-red-800" type="button">Clear all</button></div><div class="mt-3 flex flex-wrap gap-2">${favoriteItems.map(({ item }) => `<button class="favorite-shortcut rounded-full bg-orange-100 px-3 py-2 text-sm font-bold dark:bg-stone-800" type="button" data-item="${escapeHtml(item.dataset.itemName)}">${escapeHtml(item.dataset.itemName)}</button>`).join("")}</div>`
+      : '<p class="text-sm text-stone-600 dark:text-stone-300">Tap the heart on a menu card to save a favorite.</p>';
+    favoritesPanel.querySelector("#clear-favorites")?.addEventListener("click", () => {
+      favorites = [];
+      data.saveFavorites(favorites);
+      renderFavorites();
+      menuItems.forEach(({ item }) => updateFavoriteButton(item));
+    });
+    favoritesPanel.querySelectorAll(".favorite-shortcut").forEach((button) => {
+      button.addEventListener("click", () => {
+        menuSearch.value = button.dataset.item;
+        selectedCategory = "all";
+        categoryButtons[0].click();
+        menuSearch.dispatchEvent(new Event("input"));
+        document.querySelector("#menu-search").scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+  }
+
+  function updateFavoriteButton(item) {
+    const button = item.querySelector(".favorite-toggle");
+    if (!button) return;
+    const favorite = favorites.includes(item.dataset.itemName);
+    button.textContent = favorite ? "♥" : "♡";
+    button.setAttribute("aria-pressed", String(favorite));
+    button.setAttribute("aria-label", `${favorite ? "Remove" : "Save"} ${item.dataset.itemName} ${favorite ? "from" : "to"} favorites`);
+  }
+
+  function updateOrder() {
     const entries = [...orders.values()];
     const itemCount = entries.reduce((total, order) => total + order.quantity, 0);
-    const total = entries.reduce((sum, order) => sum + order.price * order.quantity, 0);
+    const total = entries.reduce((sum, order) => sum + order.unitPrice * order.quantity, 0);
     document.querySelector("#order-count").textContent = String(itemCount);
     document.querySelector("#order-total").textContent = pesos(total);
     document.querySelector("#cart-total").textContent = pesos(total);
     const list = document.querySelector("#order-list");
-
-    if (!entries.length) {
-      list.innerHTML = '<p class="rounded-xl bg-orange-50 p-4 text-center text-stone-600 dark:bg-stone-950 dark:text-stone-300">No orders yet.</p>';
-      document.querySelector("#place-order").disabled = true;
-      return;
-    }
-
-    document.querySelector("#place-order").disabled = false;
-    list.innerHTML = entries.map((order, index) => `
+    document.querySelector("#place-order").disabled = !entries.length;
+    list.innerHTML = entries.length ? entries.map((order, index) => `
       <div class="flex items-center justify-between gap-3 rounded-xl bg-orange-50 p-4 dark:bg-stone-950">
-        <div>
-          <strong>${order.name}</strong>
-          <p class="text-sm text-stone-600 dark:text-stone-300">${order.quantity} × ${pesos(order.price)}</p>
+        <div><strong>${escapeHtml(order.name)}</strong>
+          <p class="text-sm text-stone-600 dark:text-stone-300">${order.size}" · ${escapeHtml(order.crust)}${order.toppings.length ? ` · ${escapeHtml(order.toppings.join(", "))}` : ""}</p>
+          <p class="text-sm text-stone-600 dark:text-stone-300">${order.quantity} × ${pesos(order.unitPrice)}</p>
         </div>
-        <button class="remove-order rounded-lg border border-red-800 px-3 py-2 text-sm font-bold text-red-800" type="button" data-order-index="${index}" aria-label="Remove ${order.name}">Remove</button>
-      </div>
-    `).join("");
-  };
+        <button class="remove-order rounded-lg border border-red-800 px-3 py-2 text-sm font-bold text-red-800" type="button" data-order-index="${index}" aria-label="Remove ${escapeHtml(order.name)}">Remove</button>
+      </div>`).join("")
+      : '<p class="rounded-xl bg-orange-50 p-4 text-center text-stone-600 dark:bg-stone-950 dark:text-stone-300">No items yet. Add a pizza to get started.</p>';
+  }
 
-  const updateFulfillmentFields = () => {
-    const isDelivery = document.querySelector('input[name="fulfillment"]:checked').value === "delivery";
-    deliveryDetails.classList.toggle("hidden", !isDelivery);
-    locationField.required = isDelivery;
-    phoneField.required = isDelivery;
-  };
+  function currentCustomizedPrice() {
+    return selectedItem.price + optionExtra(document.querySelector("#custom-size")) +
+      optionExtra(document.querySelector("#custom-crust")) +
+      document.querySelectorAll('input[name="extra-topping"]:checked').length * 25;
+  }
 
-  const addOrder = (item, quantity = 1) => {
-    const existing = orders.get(item.name);
-    orders.set(item.name, {
+  function updateBuyQuantity() {
+    const unitPrice = currentCustomizedPrice();
+    document.querySelector("#buy-quantity").textContent = String(buyQuantity);
+    document.querySelector("#buy-modal-price").textContent = `${pesos(unitPrice)} each`;
+    document.querySelector("#buy-total").textContent = pesos(unitPrice * buyQuantity);
+  }
+
+  function addOrder(item, quantity, options) {
+    const key = [item.name, options.size, options.crust, ...options.toppings].join("|");
+    const existing = orders.get(key);
+    orders.set(key, {
       ...item,
-      quantity: (existing?.quantity || 0) + quantity,
+      ...options,
+      unitPrice: item.price + options.sizeExtra + options.crustExtra + options.toppings.length * 25,
+      quantity: (existing?.quantity || 0) + quantity
     });
     updateOrder();
-  };
+  }
 
-
-  const openBuyModal = (item) => {
+  function openBuyModal(item) {
     selectedItem = item;
     buyQuantity = 1;
     document.querySelector("#buy-modal-title").textContent = item.name;
-    document.querySelector("#buy-modal-price").textContent = `${pesos(item.price)} each`;
-    document.querySelector("#buy-quantity").textContent = "1";
-    document.querySelector("#buy-total").textContent = pesos(item.price);
+    document.querySelector("#custom-size").value = "10";
+    document.querySelector("#custom-crust").value = "Classic";
+    document.querySelectorAll('input[name="extra-topping"]').forEach((input) => { input.checked = false; });
+    updateBuyQuantity();
     setModalVisibility(buyModal, true);
-  };
-
-  const updateBuyQuantity = () => {
-    document.querySelector("#buy-quantity").textContent = String(buyQuantity);
-    document.querySelector("#buy-total").textContent = pesos(selectedItem.price * buyQuantity);
-  };
+  }
 
   const menuSections = [...document.querySelectorAll("[data-menu-category]")];
   const menuItems = menuSections.flatMap((section) =>
     [...section.querySelectorAll("article")].map((item) => {
       const name = item.querySelector("h2")?.textContent.trim() || "";
-      const searchText = item.textContent.toLocaleLowerCase();
       const priceText = item.querySelector("h2")?.parentElement.querySelector("span")?.textContent || "";
       const priceMatch = priceText.match(/\d+(?:\.\d+)?/);
-      if (!name || !priceMatch) {
-        throw new Error("A menu item is missing its name or price.");
-      }
+      if (!name || !priceMatch) throw new Error("A menu item is missing its name or price.");
       const price = Number(priceMatch[0]);
+      item.dataset.itemName = name;
       const menuItem = { name, price };
+      const isAvailable = availability[name] !== false;
+      const badge = document.createElement("span");
+      const lowerName = name.toLocaleLowerCase();
+      if (!isAvailable) {
+        badge.className = "menu-badge sold-out";
+        badge.textContent = "Sold out";
+        item.classList.add("menu-sold-out");
+      } else if (section.dataset.menuCategory === "Special Pizza Combo") {
+        badge.className = "menu-badge promo";
+        badge.textContent = "Shareable combo";
+      } else if (/pepperoni|spicy|sisig/.test(lowerName)) {
+        badge.className = "menu-badge spicy";
+        badge.textContent = "Spicy";
+      } else if (/tuna|corn|garden|mushroom|crab/.test(lowerName)) {
+        badge.className = "menu-badge veggie";
+        badge.textContent = /garden|mushroom|corn|tuna|crab/.test(lowerName) ? "Fresh" : "Vegetarian";
+      } else {
+        badge.className = "menu-badge";
+        badge.textContent = "Best seller";
+      }
+      item.prepend(badge);
+      const favoriteButton = document.createElement("button");
+      favoriteButton.className = "favorite-toggle absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/90 text-2xl leading-none text-red-700 shadow-md backdrop-blur transition hover:scale-110 hover:bg-white dark:bg-stone-900/90 dark:text-orange-300 dark:hover:bg-stone-800";
+      favoriteButton.type = "button";
+      favoriteButton.addEventListener("click", () => {
+        favorites = favorites.includes(name) ? favorites.filter((favorite) => favorite !== name) : [...favorites, name];
+        data.saveFavorites(favorites);
+        updateFavoriteButton(item);
+        renderFavorites();
+      });
+      item.append(favoriteButton);
       const actions = document.createElement("div");
-      actions.className = "mt-4 grid grid-cols-2 gap-3";
+      actions.className = "mt-4 grid grid-cols-[1fr_auto] gap-2";
       actions.innerHTML = `
-        <button class="add-order rounded-full border border-red-800 px-3 py-3 font-bold text-red-800 hover:bg-orange-100 dark:border-orange-300 dark:text-orange-300" type="button">Add</button>
-        <button class="menu-buy-now rounded-full bg-red-800 px-3 py-3 font-bold text-white hover:bg-red-900 dark:bg-orange-700" type="button">Buy</button>
-      `;
-      actions.querySelector(".add-order").setAttribute("aria-label", `Add ${name} to orders`);
-      actions.querySelector(".menu-buy-now").setAttribute("aria-label", `Buy ${name}`);
+        <button class="add-order rounded-full bg-red-800 px-3 py-3 font-bold text-white hover:bg-red-900" type="button" ${isAvailable ? "" : "disabled"}>Buy</button>
+        <button class="menu-buy-now rounded-full border border-red-800 px-3 py-3 font-bold text-red-800 hover:bg-orange-100 dark:border-orange-300 dark:text-orange-300" type="button" ${isAvailable ? "" : "disabled"}>Customize</button>`;
+      actions.querySelector(".add-order").setAttribute("aria-label", `Buy ${name}`);
+      actions.querySelector(".menu-buy-now").setAttribute("aria-label", `Customize ${name}`);
       actions.querySelector(".add-order").addEventListener("click", () => {
-        addOrder(menuItem);
-        document.querySelector("#menu-status").textContent = `${name} was added to your orders.`;
+        addOrder(menuItem, 1, { size: 10, sizeExtra: 0, crust: "Classic", crustExtra: 0, toppings: [] });
+        showStatus(`${name} was added to your order.`);
       });
       actions.querySelector(".menu-buy-now").addEventListener("click", () => openBuyModal(menuItem));
       item.querySelector(".p-5")?.append(actions);
-      return {
-        item,
-        section,
-        searchText,
-      };
+      updateFavoriteButton(item);
+      return { item, section, searchText: item.textContent.toLocaleLowerCase() };
     })
   );
-  const results = document.querySelector("#menu-results");
+
+  function applyAvailability() {
+    availability = data.getAvailability();
+    menuItems.forEach(({ item, section }) => {
+      const name = item.dataset.itemName;
+      const available = availability[name] !== false;
+      const badge = item.querySelector(".menu-badge");
+      item.classList.toggle("menu-sold-out", !available);
+      if (!available) {
+        badge.className = "menu-badge sold-out";
+        badge.textContent = "Sold out";
+      } else if (section.dataset.menuCategory === "Special Pizza Combo") {
+        badge.className = "menu-badge promo";
+        badge.textContent = "Shareable combo";
+      } else if (/pepperoni|spicy|sisig/i.test(name)) {
+        badge.className = "menu-badge spicy";
+        badge.textContent = "Spicy";
+      } else if (/tuna|corn|garden|mushroom|crab/i.test(name)) {
+        badge.className = "menu-badge veggie";
+        badge.textContent = /garden|mushroom|corn|tuna|crab/i.test(name) ? "Fresh" : "Vegetarian";
+      } else {
+        badge.className = "menu-badge";
+        badge.textContent = "Best seller";
+      }
+      item.querySelectorAll(".add-order, .menu-buy-now").forEach((button) => {
+        button.disabled = !available;
+      });
+    });
+  }
+
+  applyAvailability();
+
   const cravingKeywords = {
     cheesy: ["cheese", "cheesy", "mozzarella"],
     meaty: ["ham", "meat", "beef", "bacon", "sausage", "pepperoni", "pork", "sisig"],
@@ -122,37 +233,28 @@ if (menuSearch && categoryButtons.length) {
   let selectedCraving = searchParams.get("craving")?.toLowerCase() || "";
   menuSearch.value = searchParams.get("search") || "";
   if (!Object.prototype.hasOwnProperty.call(cravingKeywords, selectedCraving)) selectedCraving = "";
-  let selectedCategory = "all";
+  const results = document.querySelector("#menu-results");
 
-  const filterMenu = () => {
+  function filterMenu() {
     const query = menuSearch.value.trim().toLocaleLowerCase();
     const keywords = cravingKeywords[selectedCraving] || [];
     let visibleCount = 0;
-
     menuItems.forEach(({ item, section, searchText }) => {
       const matchesCategory = selectedCategory === "all" || section.dataset.menuCategory === selectedCategory;
       const matchesCraving = !keywords.length || keywords.some((keyword) => searchText.includes(keyword));
-      const matchesSearch = searchText.includes(query);
-      const visible = matchesCategory && matchesCraving && matchesSearch;
+      const visible = matchesCategory && matchesCraving && searchText.includes(query);
       item.classList.toggle("hidden", !visible);
       if (visible) visibleCount += 1;
     });
-
     menuSections.forEach((section) => {
-      const hasVisibleItems = [...section.querySelectorAll("article")].some((item) => !item.classList.contains("hidden"));
-      section.classList.toggle("hidden", !hasVisibleItems);
+      section.classList.toggle("hidden", ![...section.querySelectorAll("article")].some((item) => !item.classList.contains("hidden")));
     });
-
-    const cravingLabel = selectedCraving ? ` for ${selectedCraving} cravings` : "";
     results.textContent = visibleCount
-      ? `Showing ${visibleCount} menu item${visibleCount === 1 ? "" : "s"}${cravingLabel}.`
+      ? `Showing ${visibleCount} menu item${visibleCount === 1 ? "" : "s"}${selectedCraving ? ` for ${selectedCraving} cravings` : ""}.`
       : "No menu items match your search.";
-  };
+  }
 
-  menuSearch.addEventListener("input", () => {
-    selectedCraving = "";
-    filterMenu();
-  });
+  menuSearch.addEventListener("input", () => { selectedCraving = ""; filterMenu(); });
   categoryButtons.forEach((button) => {
     button.addEventListener("click", () => {
       selectedCategory = button.dataset.category;
@@ -160,81 +262,129 @@ if (menuSearch && categoryButtons.length) {
         const active = categoryButton === button;
         categoryButton.setAttribute("aria-pressed", String(active));
         categoryButton.classList.toggle("border-red-800", active);
-        categoryButton.classList.toggle("bg-red-800", active);
-        categoryButton.classList.toggle("text-white", active);
+        categoryButton.classList.toggle("bg-yellow-400", active);
+        categoryButton.classList.toggle("text-red-900", active);
         categoryButton.classList.toggle("border-orange-100", !active);
         categoryButton.classList.toggle("bg-orange-50", !active);
         categoryButton.classList.toggle("text-stone-700", !active);
-        categoryButton.classList.toggle("dark:border-orange-400", active);
-        categoryButton.classList.toggle("dark:bg-orange-700", active);
-        categoryButton.classList.toggle("dark:text-white", active);
-        categoryButton.classList.toggle("dark:border-stone-700", !active);
-        categoryButton.classList.toggle("dark:bg-stone-950", !active);
-        categoryButton.classList.toggle("dark:text-stone-200", !active);
-        if (categoryButton.dataset.category === "all") {
-          categoryButton.classList.toggle("bg-yellow-400", active);
-          categoryButton.classList.toggle("text-red-900", active);
-          categoryButton.classList.toggle("dark:text-red-900", active);
-          categoryButton.classList.toggle("border-yellow-400", active);
-        }
       });
       filterMenu();
     });
   });
   filterMenu();
+  renderFavorites();
 
-  document.querySelector("#decrease-quantity")?.addEventListener("click", () => {
+  branchField.addEventListener("change", () => {
+    const city = branchField.value === "1" ? "Sipocot" : "Naga+City";
+    document.querySelector("#branch-directions").href = `page4.html?branch=${encodeURIComponent(city.replace("+", " "))}`;
+  });
+  document.querySelector("#show-favorites").addEventListener("click", () => favoritesPanel.classList.toggle("hidden"));
+  document.querySelector("[data-show-combos]").addEventListener("click", () => {
+    categoryButtons.find((button) => button.dataset.category === "Special Pizza Combo").click();
+    document.querySelector('[data-menu-category="Special Pizza Combo"]').scrollIntoView({ behavior: "smooth" });
+  });
+  document.querySelector("#decrease-quantity").addEventListener("click", () => {
     buyQuantity = Math.max(1, buyQuantity - 1);
     updateBuyQuantity();
   });
-  document.querySelector("#increase-quantity")?.addEventListener("click", () => {
+  document.querySelector("#increase-quantity").addEventListener("click", () => {
     buyQuantity += 1;
     updateBuyQuantity();
   });
-  document.querySelector("#confirm-order")?.addEventListener("click", () => {
-    addOrder(selectedItem, buyQuantity);
+  document.querySelectorAll("#custom-size, #custom-crust, input[name='extra-topping']").forEach((control) => {
+    control.addEventListener("change", updateBuyQuantity);
+  });
+  document.querySelector("#confirm-order").addEventListener("click", () => {
+    const options = {
+      size: Number(document.querySelector("#custom-size").value),
+      sizeExtra: optionExtra(document.querySelector("#custom-size")),
+      crust: document.querySelector("#custom-crust").value,
+      crustExtra: optionExtra(document.querySelector("#custom-crust")),
+      toppings: [...document.querySelectorAll('input[name="extra-topping"]:checked')].map((input) => input.value)
+    };
+    addOrder(selectedItem, buyQuantity, options);
     setModalVisibility(buyModal, false);
-    document.querySelector("#menu-status").textContent = `${buyQuantity} × ${selectedItem.name} was added to your orders.`;
+    showStatus(`${buyQuantity} × ${selectedItem.name} added to your order.`);
     setModalVisibility(orderModal, true);
   });
-  document.querySelector("#close-buy-modal")?.addEventListener("click", () => setModalVisibility(buyModal, false));
-  document.querySelector("#open-order")?.addEventListener("click", () => setModalVisibility(orderModal, true));
-  document.querySelector("#close-order-modal")?.addEventListener("click", () => setModalVisibility(orderModal, false));
-  fulfillmentOptions.forEach((option) => option.addEventListener("change", updateFulfillmentFields));
-  updateFulfillmentFields();
-  document.querySelector("#order-list")?.addEventListener("click", (event) => {
+  document.querySelector("#close-buy-modal").addEventListener("click", () => setModalVisibility(buyModal, false));
+  document.querySelector("#open-order").addEventListener("click", () => setModalVisibility(orderModal, true));
+  document.querySelector("#close-order-modal").addEventListener("click", () => setModalVisibility(orderModal, false));
+  fulfillmentOptions.forEach((option) => option.addEventListener("change", () => {
+    const isDelivery = document.querySelector('input[name="fulfillment"]:checked').value === "delivery";
+    deliveryDetails.classList.toggle("hidden", !isDelivery);
+    locationField.required = isDelivery;
+  }));
+  fulfillmentOptions[0]?.dispatchEvent(new Event("change"));
+
+  document.querySelector("#order-list").addEventListener("click", (event) => {
     const button = event.target.closest(".remove-order");
     if (!button) return;
     const order = [...orders.values()][Number(button.dataset.orderIndex)];
-    orders.delete(order.name);
+    if (order) orders.delete([order.name, order.size, order.crust, ...order.toppings].join("|"));
     updateOrder();
   });
-  document.querySelector("#place-order")?.addEventListener("click", () => {
+
+  document.querySelector("#place-order").addEventListener("click", () => {
     const fulfillment = document.querySelector('input[name="fulfillment"]:checked').value;
     const deliveryStatus = document.querySelector("#delivery-status");
-    const location = locationField.value.trim();
+    const customerName = document.querySelector("#customer-name").value.trim();
     const phone = phoneField.value.trim();
-
-    if (fulfillment === "delivery" && (!location || !phone)) {
-      deliveryStatus.textContent = "Please enter your delivery location and contact number.";
+    const location = locationField.value.trim();
+    const deliveryNotes = document.querySelector("#delivery-notes").value.trim();
+    if (!customerName || !phone || (fulfillment === "delivery" && !location)) {
+      deliveryStatus.textContent = "Enter your name and contact number; delivery orders also need a delivery location.";
       deliveryStatus.classList.remove("hidden");
-      (!location ? locationField : phoneField).focus();
+      (!customerName ? document.querySelector("#customer-name") : !phone ? phoneField : locationField).focus();
       return;
     }
 
-    deliveryStatus.classList.add("hidden");
-    const notes = document.querySelector("#delivery-notes").value.trim();
-    document.querySelector("#menu-status").textContent = fulfillment === "pickup"
-      ? "Order placed for pickup."
-      : `Order placed for delivery to ${location}.${notes ? ` Notes: ${notes}` : ""}`;
+    const entries = [...orders.values()];
+    if (!entries.length) return;
+    const orderID = Date.now();
+    const reference = `PH-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const order = {
+      OrderID: orderID,
+      Reference: reference,
+      StoreID: Number(branchField.value),
+      StoreName: branchField.selectedOptions[0].dataset.store,
+      CustomerName: customerName,
+      ContactNumber: phone,
+      PickupMethod: fulfillment === "pickup" ? "Pickup" : "Delivery",
+      DeliveryLocation: fulfillment === "delivery" ? location : "",
+      Notes: deliveryNotes,
+      OrderDateTime: manilaDateTime(),
+      OrderItems: entries.map((entry) => ({
+        ItemName: entry.name, Quantity: entry.quantity, Price: entry.unitPrice,
+        Size: entry.size, Crust: entry.crust, Toppings: entry.toppings
+      })),
+      Total: entries.reduce((sum, entry) => sum + entry.unitPrice * entry.quantity, 0),
+      Status: "Received"
+    };
+    try {
+      const savedOrders = data.getOrders();
+      data.saveOrders([...savedOrders, order]);
+    } catch (error) {
+      deliveryStatus.textContent = error.message;
+      deliveryStatus.classList.remove("hidden");
+      return;
+    }
     orders.clear();
     updateOrder();
-    setModalVisibility(orderModal, false);
-    locationField.value = "";
-    phoneField.value = "";
-    document.querySelector("#delivery-notes").value = "";
+    deliveryStatus.classList.add("hidden");
+    document.querySelector("#place-order").classList.add("hidden");
+    document.querySelector("#order-confirmation").classList.remove("hidden");
+    document.querySelector("#order-confirmation").innerHTML = `
+      <p class="font-bold text-emerald-800 dark:text-emerald-300">Order received</p>
+      <p class="mt-2">Your reference number is <strong>${escapeHtml(reference)}</strong>.</p>
+      <p class="mt-1 text-sm">Keep it to check your order status. ${escapeHtml(order.StoreName)} · ${escapeHtml(order.PickupMethod)}</p>
+      <a class="mt-4 inline-flex rounded-full bg-red-800 px-4 py-2 font-bold text-white" href="track-order.html?reference=${encodeURIComponent(reference)}">Track this order</a>`;
+    document.querySelector("#order-modal-title").textContent = "Order confirmed";
+    document.querySelector("#order-list").classList.add("hidden");
+    document.querySelector("#order-total").parentElement.classList.add("hidden");
+    document.querySelector("#delivery-details").classList.add("hidden");
   });
-  [buyModal, orderModal].forEach((modal) => modal?.addEventListener("click", (event) => {
+  [buyModal, orderModal].forEach((modal) => modal.addEventListener("click", (event) => {
     if (event.target === modal) setModalVisibility(modal, false);
   }));
   document.addEventListener("keydown", (event) => {
@@ -243,5 +393,10 @@ if (menuSearch && categoryButtons.length) {
       setModalVisibility(orderModal, false);
     }
   });
-  updateOrder();
+  window.addEventListener("storage", (event) => {
+    if (event.key === data.orderStorageKey) {
+      showStatus("Order status updated in the admin dashboard.");
+    }
+    if (event.key === data.availabilityStorageKey) applyAvailability();
+  });
 }

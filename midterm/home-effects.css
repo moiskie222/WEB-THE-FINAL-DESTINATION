@@ -92,6 +92,14 @@
   box-shadow: 0 5px 14px rgba(127, 29, 29, 0.12);
 }
 
+#favorites article {
+  background: rgba(255, 253, 248, 0.78);
+}
+
+html.dark #favorites article {
+  background: rgba(35, 34, 29, 0.82);
+}
+
 html.dark .craving-chip {
   border-color: #57534e;
   background: rgba(41, 37, 36, 0.92);
