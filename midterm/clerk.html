@@ -30,7 +30,7 @@
       <div>
         <p class="eyebrow">STAFF WORKSPACE</p>
         <h1>Order desk</h1>
-        <p class="page-subtitle">Review customer demo orders and update their status.</p>
+        <p class="page-subtitle">Review customer orders and update their status.</p>
       </div>
       <button id="refresh-orders" class="secondary-button" type="button">Refresh orders</button>
     </div>
@@ -74,5 +74,79 @@
       <button class="secondary-button" id="dismiss-history-dialog" type="button">Close</button>
     </div>
   </dialog>
+
+  <template id="clerk-summary-card-template">
+    <article class="clerk-summary-card">
+      <div>
+        <span class="clerk-summary-label" data-summary-label></span>
+        <strong data-summary-value></strong>
+        <span class="clerk-summary-hint" data-summary-hint></span>
+      </div>
+      <span class="clerk-summary-icon" data-summary-icon aria-hidden="true"></span>
+    </article>
+  </template>
+  <template id="clerk-current-order-template">
+    <article class="clerk-control-card">
+      <div class="clerk-control-heading">
+        <div>
+          <p class="eyebrow" data-order-reference></p>
+          <h3 data-customer-name></h3>
+        </div>
+        <span class="status-chip warning" data-order-status-label></span>
+      </div>
+      <div class="clerk-control-details">
+        <p><strong>Branch:</strong> <span data-order-branch></span></p>
+        <p><strong>Fulfillment:</strong> <span data-order-fulfillment></span></p>
+        <p><strong>Placed:</strong> <span data-order-date></span></p>
+        <p><strong>Contact:</strong> <span data-order-contact></span></p>
+      </div>
+      <ul class="clerk-control-items" data-order-items></ul>
+      <div class="clerk-control-footer">
+        <strong class="clerk-control-total" data-order-total></strong>
+        <div class="clerk-status-form">
+          <label data-order-status-label-for>Status</label>
+          <select data-order-status></select>
+          <button class="primary-button" type="button" data-save-status>Save status</button>
+        </div>
+      </div>
+    </article>
+  </template>
+  <template id="clerk-history-order-template">
+    <article class="clerk-history-record">
+      <button class="clerk-history-select" type="button" data-history-order>
+        <span class="clerk-history-record-heading">
+          <span><strong data-history-reference></strong><span data-history-customer></span></span>
+          <span class="status-chip" data-history-status></span>
+        </span>
+        <span class="clerk-history-record-summary">
+          <span data-history-date></span>
+          <strong data-history-total></strong>
+        </span>
+        <span class="clerk-history-action">View order details →</span>
+      </button>
+    </article>
+  </template>
+  <template id="clerk-history-details-template">
+    <div>
+      <div class="history-dialog-heading">
+        <strong data-detail-customer></strong>
+        <span class="status-chip" data-detail-status></span>
+      </div>
+      <div class="history-dialog-details">
+        <p><strong>Branch:</strong> <span data-detail-branch></span></p>
+        <p><strong>Fulfillment:</strong> <span data-detail-fulfillment></span></p>
+        <p><strong>Contact:</strong> <span data-detail-contact></span></p>
+        <p><strong>Placed:</strong> <span data-detail-date></span></p>
+        <p><strong>Payment:</strong> <span data-detail-payment></span></p>
+        <p data-delivery-row hidden><strong>Delivery to:</strong> <span data-detail-delivery></span></p>
+      </div>
+      <h3 class="history-dialog-items-title">Items</h3>
+      <ul class="history-dialog-items" data-detail-items></ul>
+      <strong class="history-dialog-total" data-detail-total></strong>
+    </div>
+  </template>
+  <template id="clerk-order-item-template"><li data-order-item></li></template>
+  <template id="clerk-status-option-template"><option></option></template>
+  <template id="clerk-empty-state-template"><div class="empty-state"></div></template>
 </body>
 </html>

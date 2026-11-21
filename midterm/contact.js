@@ -87,7 +87,7 @@ if (contactForm) {
       return;
     }
 
-    status.textContent = "Thanks for your feedback! Your response is ready.";
+    status.textContent = "Thanks for your feedback. This demo form does not send or store responses yet.";
     status.className = "rounded-xl bg-green-100 p-4 text-green-800 dark:bg-green-950 dark:text-green-200";
     contactForm.reset();
   });

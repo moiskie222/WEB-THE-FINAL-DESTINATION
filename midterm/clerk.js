@@ -10,10 +10,19 @@ const allowedStatuses = ["Received", "Preparing", "Ready", "Completed", "Deliver
 const clerkData = window.PizzaHausData;
 const historyStatuses = new Set(["Completed", "Delivered", "Cancelled"]);
 
-function escapeOrderText(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[char]);
+function cloneTemplate(id) {
+  const template = document.getElementById(id);
+  if (!template || !template.content.firstElementChild) {
+    throw new Error(`The "${id}" HTML template is missing.`);
+  }
+  return template.content.firstElementChild.cloneNode(true);
+}
+
+function showEmptyState(container, message, className) {
+  const emptyState = cloneTemplate("clerk-empty-state-template");
+  emptyState.classList.add(className);
+  emptyState.textContent = message;
+  container.replaceChildren(emptyState);
 }
 
 function showClerkNotice(message, isError) {
@@ -31,11 +40,14 @@ function renderOverview(orders) {
     ["Order history", historyCount, "Completed, delivered, or cancelled", "✓"]
   ];
 
-  clerkOverview.innerHTML = summary.map(([label, value, hint, icon]) => `
-    <article class="clerk-summary-card">
-      <div><span class="clerk-summary-label">${label}</span><strong>${value}</strong><span class="clerk-summary-hint">${hint}</span></div>
-      <span class="clerk-summary-icon" aria-hidden="true">${icon}</span>
-    </article>`).join("");
+  clerkOverview.replaceChildren(...summary.map(([label, value, hint, icon]) => {
+    const card = cloneTemplate("clerk-summary-card-template");
+    card.querySelector("[data-summary-label]").textContent = label;
+    card.querySelector("[data-summary-value]").textContent = value;
+    card.querySelector("[data-summary-hint]").textContent = hint;
+    card.querySelector("[data-summary-icon]").textContent = icon;
+    return card;
+  }));
 }
 
 function orderStatus(order) {
@@ -59,65 +71,73 @@ function renderOrders() {
     renderOverview(orders);
     clerkOrderCount.textContent = `${historyOrders.length} ${historyOrders.length === 1 ? "record" : "records"}`;
     if (!currentOrders.length) {
-      orderList.innerHTML = '<div class="empty-state clerk-empty-state">No orders to manage.</div>';
+      orderList.style.maxHeight = "";
+      showEmptyState(orderList, "No orders to manage.", "clerk-empty-state");
     } else {
-      orderList.innerHTML = currentOrders.map((order) => {
+      orderList.replaceChildren(...currentOrders.map((order) => {
         const currentStatus = orderStatus(order);
-        const items = (order.OrderItems || []).map((item) =>
-          `<li>${escapeOrderText(item.Quantity)} × ${escapeOrderText(item.ItemName)}</li>`
-        ).join("");
-        return `
-          <article class="clerk-control-card">
-            <div class="clerk-control-heading">
-              <div>
-                <p class="eyebrow">${escapeOrderText(order.Reference || `Order ${order.OrderID}`)}</p>
-                <h3>${escapeOrderText(order.CustomerName || "Guest customer")}</h3>
-              </div>
-              <span class="status-chip warning">${escapeOrderText(currentStatus)}</span>
-            </div>
-            <div class="clerk-control-details">
-              <p><strong>Branch:</strong> ${escapeOrderText(order.StoreName || "—")}</p>
-              <p><strong>Fulfillment:</strong> ${escapeOrderText(order.PickupMethod || "—")}</p>
-              <p><strong>Placed:</strong> ${escapeOrderText(order.OrderDateTime || "—")}</p>
-              <p><strong>Contact:</strong> ${escapeOrderText(order.ContactNumber || "—")}</p>
-            </div>
-            <ul class="clerk-control-items">${items || "<li>Item details unavailable</li>"}</ul>
-            <div class="clerk-control-footer">
-              <strong class="clerk-control-total">Total: P${Number(order.Total || 0).toFixed(2)}</strong>
-              <div class="clerk-status-form">
-                <label for="status-${escapeOrderText(order.OrderID)}">Update status</label>
-                <select id="status-${escapeOrderText(order.OrderID)}" data-order-status="${escapeOrderText(order.OrderID)}">
-                  ${allowedStatuses.map((status) => `<option value="${status}" ${status === currentStatus ? "selected" : ""}>${status}</option>`).join("")}
-                </select>
-                <button class="primary-button" type="button" data-save-status="${escapeOrderText(order.OrderID)}">Save status</button>
-              </div>
-            </div>
-          </article>`;
-      }).join("");
+        const card = cloneTemplate("clerk-current-order-template");
+        const orderID = String(order.OrderID);
+        card.querySelector("[data-order-reference]").textContent = order.Reference || `Order ${orderID}`;
+        card.querySelector("[data-customer-name]").textContent = order.CustomerName || "Guest customer";
+        card.querySelector("[data-order-status-label]").textContent = currentStatus;
+        card.querySelector("[data-order-branch]").textContent = order.StoreName || "—";
+        card.querySelector("[data-order-fulfillment]").textContent = order.PickupMethod || "—";
+        card.querySelector("[data-order-date]").textContent = order.OrderDateTime || "—";
+        card.querySelector("[data-order-contact]").textContent = order.ContactNumber || "—";
+        card.querySelector("[data-order-total]").textContent = `Total: P${Number(order.Total || 0).toFixed(2)}`;
+
+        const statusSelect = card.querySelector("[data-order-status]");
+        const statusLabel = card.querySelector("[data-order-status-label-for]");
+        statusSelect.id = `status-${orderID}`;
+        statusSelect.dataset.orderStatus = orderID;
+        statusLabel.htmlFor = statusSelect.id;
+        statusLabel.textContent = "Update status";
+        allowedStatuses.forEach((status) => {
+          const option = cloneTemplate("clerk-status-option-template");
+          option.value = status;
+          option.textContent = status;
+          option.selected = status === currentStatus;
+          statusSelect.append(option);
+        });
+        card.querySelector("[data-save-status]").dataset.saveStatus = orderID;
+
+        const itemList = card.querySelector("[data-order-items]");
+        const items = Array.isArray(order.OrderItems) ? order.OrderItems : [];
+        if (items.length) {
+          items.forEach((item) => {
+            const itemRow = cloneTemplate("clerk-order-item-template");
+            itemRow.textContent = `${item.Quantity ?? "—"} × ${item.ItemName || "—"}`;
+            itemList.append(itemRow);
+          });
+        } else {
+          const itemRow = cloneTemplate("clerk-order-item-template");
+          itemRow.textContent = "Item details unavailable";
+          itemList.append(itemRow);
+        }
+        return card;
+      }));
       fitCurrentOrders();
     }
 
     if (!historyOrders.length) {
-      historyList.innerHTML = '<div class="empty-state clerk-history-empty">Completed, delivered, or cancelled orders will appear here.</div>';
+      showEmptyState(historyList, "Completed, delivered, or cancelled orders will appear here.", "clerk-history-empty");
     } else {
-      historyList.innerHTML = historyOrders.map((order) => {
+      historyList.replaceChildren(...historyOrders.map((order) => {
         const currentStatus = orderStatus(order);
         const statusClass = currentStatus === "Cancelled" ? "danger" : "success";
-        return `
-          <article class="clerk-history-record">
-            <button class="clerk-history-select" type="button" data-history-order="${escapeOrderText(order.OrderID)}">
-              <span class="clerk-history-record-heading">
-                <span><strong>${escapeOrderText(order.Reference || `Order ${order.OrderID}`)}</strong><span>${escapeOrderText(order.CustomerName || "Guest customer")}</span></span>
-                <span class="status-chip ${statusClass}">${escapeOrderText(currentStatus)}</span>
-              </span>
-              <span class="clerk-history-record-summary">
-                <span>${escapeOrderText(order.OrderDateTime || "—")}</span>
-                <strong>P${Number(order.Total || 0).toFixed(2)}</strong>
-              </span>
-              <span class="clerk-history-action">View order details →</span>
-            </button>
-          </article>`;
-      }).join("");
+        const card = cloneTemplate("clerk-history-order-template");
+        const button = card.querySelector("[data-history-order]");
+        button.dataset.historyOrder = order.OrderID;
+        card.querySelector("[data-history-reference]").textContent = order.Reference || `Order ${order.OrderID}`;
+        card.querySelector("[data-history-customer]").textContent = order.CustomerName || "Guest customer";
+        const statusChip = card.querySelector("[data-history-status]");
+        statusChip.classList.add(statusClass);
+        statusChip.textContent = currentStatus;
+        card.querySelector("[data-history-date]").textContent = order.OrderDateTime || "—";
+        card.querySelector("[data-history-total]").textContent = `P${Number(order.Total || 0).toFixed(2)}`;
+        return card;
+      }));
     }
   } catch (error) {
     showClerkNotice(error.message, true);
@@ -127,26 +147,37 @@ function renderOrders() {
 function showHistoryOrder(order) {
   const status = orderStatus(order);
   const statusClass = status === "Cancelled" ? "danger" : "success";
-  const items = (order.OrderItems || []).map((item) =>
-    `<li>${escapeOrderText(item.Quantity)} × ${escapeOrderText(item.ItemName)}</li>`
-  ).join("");
   historyDialogTitle.textContent = order.Reference || `Order ${order.OrderID}`;
-  historyDialogContent.innerHTML = `
-    <div class="history-dialog-heading">
-      <strong>${escapeOrderText(order.CustomerName || "Guest customer")}</strong>
-      <span class="status-chip ${statusClass}">${escapeOrderText(status)}</span>
-    </div>
-    <div class="history-dialog-details">
-      <p><strong>Branch:</strong> ${escapeOrderText(order.StoreName || "—")}</p>
-      <p><strong>Fulfillment:</strong> ${escapeOrderText(order.PickupMethod || "—")}</p>
-      <p><strong>Contact:</strong> ${escapeOrderText(order.ContactNumber || "—")}</p>
-      <p><strong>Placed:</strong> ${escapeOrderText(order.OrderDateTime || "—")}</p>
-      <p><strong>Payment:</strong> ${escapeOrderText(order.PaymentMethod || "—")} · ${escapeOrderText(order.PaymentStatus || "Demo only")}</p>
-      ${order.DeliveryLocation ? `<p><strong>Delivery to:</strong> ${escapeOrderText(order.DeliveryLocation)}</p>` : ""}
-    </div>
-    <h3 class="history-dialog-items-title">Items</h3>
-    <ul class="history-dialog-items">${items || "<li>Item details unavailable</li>"}</ul>
-    <strong class="history-dialog-total">Total: P${Number(order.Total || 0).toFixed(2)}</strong>`;
+  const details = cloneTemplate("clerk-history-details-template");
+  details.querySelector("[data-detail-customer]").textContent = order.CustomerName || "Guest customer";
+  const statusChip = details.querySelector("[data-detail-status]");
+  statusChip.classList.add(statusClass);
+  statusChip.textContent = status;
+  details.querySelector("[data-detail-branch]").textContent = order.StoreName || "—";
+  details.querySelector("[data-detail-fulfillment]").textContent = order.PickupMethod || "—";
+  details.querySelector("[data-detail-contact]").textContent = order.ContactNumber || "—";
+  details.querySelector("[data-detail-date]").textContent = order.OrderDateTime || "—";
+  details.querySelector("[data-detail-payment]").textContent =
+    `${order.PaymentMethod || "—"} · ${order.PaymentStatus || "Demo only"}`;
+  if (order.DeliveryLocation) {
+    details.querySelector("[data-delivery-row]").hidden = false;
+    details.querySelector("[data-detail-delivery]").textContent = order.DeliveryLocation;
+  }
+  const itemList = details.querySelector("[data-detail-items]");
+  const items = Array.isArray(order.OrderItems) ? order.OrderItems : [];
+  if (items.length) {
+    items.forEach((item) => {
+      const itemRow = cloneTemplate("clerk-order-item-template");
+      itemRow.textContent = `${item.Quantity ?? "—"} × ${item.ItemName || "—"}`;
+      itemList.append(itemRow);
+    });
+  } else {
+    const itemRow = cloneTemplate("clerk-order-item-template");
+    itemRow.textContent = "Item details unavailable";
+    itemList.append(itemRow);
+  }
+  details.querySelector("[data-detail-total]").textContent = `Total: P${Number(order.Total || 0).toFixed(2)}`;
+  historyDialogContent.replaceChildren(details);
   historyDialog.showModal();
 }
 

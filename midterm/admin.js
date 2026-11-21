@@ -208,7 +208,7 @@ function saveRecords() {
   try {
     const savedRecords = Object.fromEntries(Object.keys(schema).map((key) => [
       key,
-      key === "CustomerOrder" ? [] : records[key]
+      key === "CustomerOrder" || key === "OrderDetails" ? [] : records[key]
     ]));
     localStorage.setItem(storageKey, JSON.stringify(savedRecords));
     return true;
@@ -231,15 +231,12 @@ function clearNotice() {
   notice.classList.remove("error");
 }
 
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[char]);
-}
-
-function formatValue(value) {
-  if (value === "" || value === null || value === undefined) return "—";
-  return escapeHtml(value);
+function cloneTemplate(id) {
+  const template = document.getElementById(id);
+  if (!template || !template.content.firstElementChild) {
+    throw new Error(`The "${id}" HTML template is missing.`);
+  }
+  return template.content.firstElementChild.cloneNode(true);
 }
 
 function singularLabel(table) {
@@ -251,37 +248,30 @@ function isReadOnlyTable(table) {
 }
 
 function renderNav() {
-  nav.innerHTML = `<a class="nav-link active" href="#overview" data-table=""><span class="nav-icon">⌂</span>Overview</a>` +
-    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">WORKSPACE</p>` +
-    Object.entries(schema).filter(([key]) => !["Store", "Supplier", "Ingredient", "MenuItem", "Delivery", "InventoryTransaction", "DailyReport", "QualityIssue"].includes(key)).map(([key, config]) =>
-      `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`
-    ).join("") +
-    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">INVENTORY</p>` +
-    ["Ingredient", "MenuItem"].map((key) => {
-      const config = schema[key];
-      return `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`;
-    }).join("") +
-    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">OPERATIONS</p>` +
-    ["Delivery", "InventoryTransaction", "DailyReport", "QualityIssue"].map((key) => {
-      const config = schema[key];
-      return `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`;
-    }).join("") +
-    `<div class="nav-divider" role="separator"></div><p class="nav-section-label">LOCATIONS</p>` +
-    ["Store", "Supplier"].map((key) => {
-      const config = schema[key];
-      return `<a class="nav-link" href="#${encodeURIComponent(key)}" data-table="${key}"><span class="nav-icon">${config.icon}</span>${config.label}<span class="nav-count">${records[key].length}</span></a>`;
-    }).join("");
-
-  nav.querySelectorAll(".nav-link").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      const key = link.dataset.table || null;
-      navigate(key);
-      sidebar.classList.remove("open");
-      document.querySelector("#mobile-menu").setAttribute("aria-expanded", "false");
-    });
+  Object.entries(records).forEach(([key, rows]) => {
+    const count = nav.querySelector(`[data-nav-count="${key}"]`);
+    if (count) count.textContent = rows.length;
   });
+  nav.querySelectorAll(".nav-link").forEach((link) =>
+    link.classList.toggle("active", (link.dataset.table || null) === activeTable)
+  );
 }
+
+nav.addEventListener("click", (event) => {
+  const link = event.target.closest(".nav-link");
+  if (!link) return;
+  event.preventDefault();
+  navigate(link.dataset.table || null);
+  sidebar.classList.remove("open");
+  document.querySelector("#mobile-menu").setAttribute("aria-expanded", "false");
+});
+
+overviewPanel.addEventListener("click", (event) => {
+  const link = event.target.closest("[data-jump]");
+  if (!link) return;
+  event.preventDefault();
+  navigate(link.dataset.jump);
+});
 
 function navigate(table) {
   activeTable = table;
@@ -323,48 +313,88 @@ function renderOverview() {
     ["Order value", customerOrdersError ? "Unavailable" : `₱${orderSales.toFixed(2)}`, "From this browser's customer orders", "₱"]
   ];
   const orders = customerOrdersError ? [] : [...records.CustomerOrder].sort((a, b) => String(b.OrderDateTime).localeCompare(String(a.OrderDateTime))).slice(0, 5);
-  overviewPanel.innerHTML = `
-    <div class="metrics-grid">${metrics.map(([label, value, hint, icon]) => `
-      <article class="metric-card"><div class="metric-top">${label}<span class="metric-icon" aria-hidden="true">${icon}</span></div>
-      <div class="metric-value">${escapeHtml(value)}</div><div class="metric-hint">${hint}</div></article>`).join("")}</div>
-    <div class="overview-grid">
-      <section class="overview-card">
-        <div class="card-heading"><h2>Recent orders</h2><a class="text-link" href="#CustomerOrder" data-jump="CustomerOrder">View all →</a></div>
-        ${orders.length ? `<div class="table-wrap"><table class="overview-table"><thead><tr><th>ORDER</th><th>CUSTOMER</th><th>STORE</th><th>METHOD</th><th>STATUS</th></tr></thead><tbody>
-          ${orders.map((order) => `<tr><td>${formatValue(order.Reference || order.OrderID)}</td><td><span class="order-name">${formatValue(order.CustomerName)}</span><span class="sub-cell">${formatValue(order.OrderDateTime)}</span></td><td>${formatValue(order.StoreName || order.StoreID)}</td><td>${formatValue(order.PickupMethod)}</td><td>${renderStatusChip(order.Status || "Received")}</td></tr>`).join("")}
-        </tbody></table></div>` : `<div class="empty-state">${customerOrdersError ? "Customer orders could not be loaded." : "No customer orders saved in this browser yet."}</div>`}
-      </section>
-      <section class="overview-card">
-        <div class="card-heading"><h2>Stores</h2><a class="text-link" href="#Store" data-jump="Store">Manage stores →</a></div>
-        <div class="stock-list">${records.Store.map((store) =>
-        `<div class="stock-row"><div><strong>${formatValue(store.StoreName)}</strong><span>${formatValue(store.Location)}</span></div><span class="store-hours">${formatValue(store.OperatingHours)}</span></div>`
-        ).join("") || `<div class="empty-state">No stores yet.</div>`}</div>
-      </section>
-    </div>`;
-  overviewPanel.querySelectorAll("[data-jump]").forEach((link) => link.addEventListener("click", (event) => {
-    event.preventDefault();
-    navigate(link.dataset.jump);
+  const metricsGrid = document.querySelector("#overview-metrics");
+  metricsGrid.replaceChildren(...metrics.map(([label, value, hint, icon]) => {
+    const card = cloneTemplate("metric-card-template");
+    card.querySelector("[data-metric-label]").textContent = label;
+    card.querySelector("[data-metric-value]").textContent = value;
+    card.querySelector("[data-metric-hint]").textContent = hint;
+    card.querySelector("[data-metric-icon]").textContent = icon;
+    return card;
   }));
+
+  const orderRows = document.querySelector("#recent-order-rows");
+  orderRows.replaceChildren();
+  if (!orders.length) {
+    const emptyRow = cloneTemplate("empty-table-row-template");
+    emptyRow.querySelector("[data-empty-table]").colSpan = 5;
+    emptyRow.querySelector("[data-empty-table]").textContent = customerOrdersError
+      ? "Customer orders could not be loaded."
+      : "No customer orders saved in this browser yet.";
+    orderRows.append(emptyRow);
+  } else {
+    orders.forEach((order) => {
+      const row = cloneTemplate("recent-order-row-template");
+      row.querySelector("[data-order-reference]").textContent = order.Reference || order.OrderID;
+      row.querySelector("[data-order-customer]").textContent = order.CustomerName || "—";
+      row.querySelector("[data-order-date]").textContent = order.OrderDateTime || "—";
+      row.querySelector("[data-order-store]").textContent = order.StoreName || order.StoreID || "—";
+      row.querySelector("[data-order-method]").textContent = order.PickupMethod || "—";
+      row.querySelector("[data-order-status]").append(renderStatusChip(order.Status || "Received"));
+      orderRows.append(row);
+    });
+  }
+
+  const stores = document.querySelector("#overview-stores");
+  stores.replaceChildren();
+  if (!records.Store.length) {
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-state";
+    emptyState.textContent = "No stores yet.";
+    stores.append(emptyState);
+  } else {
+    records.Store.forEach((store) => {
+      const row = cloneTemplate("overview-store-row-template");
+      row.querySelector("[data-store-name]").textContent = store.StoreName || "—";
+      row.querySelector("[data-store-location]").textContent = store.Location || "—";
+      row.querySelector("[data-store-hours]").textContent = store.OperatingHours || "—";
+      stores.append(row);
+    });
+  }
 }
 
 function renderOrderItemsCell(order) {
   const items = Array.isArray(order.OrderItems) ? order.OrderItems : [];
-  if (!items.length) return '<span class="muted-copy">No items</span>';
+  if (!items.length) {
+    const empty = document.createElement("span");
+    empty.className = "muted-copy";
+    empty.textContent = "No items";
+    return empty;
+  }
 
   const total = Number(order.Total || items.reduce((sum, item) =>
     sum + Number(item.Quantity || 0) * Number(item.Price || 0), 0));
-  const itemRows = items.map((item) => {
+  const summary = cloneTemplate("order-items-template");
+  const itemList = summary.querySelector("[data-order-items]");
+  items.forEach((item) => {
     const toppings = Array.isArray(item.Toppings)
-      ? item.Toppings.map(formatValue).join(", ")
-      : formatValue(item.Toppings);
+      ? item.Toppings.join(", ")
+      : item.Toppings;
     const options = [
-      item.Size ? `${formatValue(item.Size)} in` : "",
-      item.Crust ? formatValue(item.Crust) : "",
-      toppings && toppings !== "—" ? `Toppings: ${toppings}` : ""
+      item.Size ? `${item.Size} in` : "",
+      item.Crust || "",
+      toppings ? `Toppings: ${toppings}` : ""
     ].filter(Boolean).join(" · ");
-    return `<li><span>${formatValue(item.Quantity)} × ${formatValue(item.ItemName)} · ₱${Number(item.Price || 0).toFixed(2)}</span>${options ? `<span class="sub-cell">${options}</span>` : ""}</li>`;
+    const row = cloneTemplate("order-item-template");
+    row.querySelector("[data-order-item]").textContent =
+      `${item.Quantity ?? "—"} × ${item.ItemName || "—"} · ₱${Number(item.Price || 0).toFixed(2)}`;
+    const optionsElement = row.querySelector("[data-order-options]");
+    optionsElement.textContent = options;
+    optionsElement.hidden = !options;
+    itemList.append(row);
   });
-  return `<div class="order-items-summary"><ul>${itemRows.join("")}</ul><strong>Order total: ₱${total.toFixed(2)}</strong></div>`;
+  summary.querySelector("[data-order-total]").textContent = `Order total: ₱${total.toFixed(2)}`;
+  return summary;
 }
 
 function renderTable() {
@@ -373,11 +403,32 @@ function renderTable() {
   const readOnly = isReadOnlyTable(activeTable);
   const visibleColumnCount = config.fields.length + (hasOrderItems ? 1 : 0) + (readOnly ? 0 : 1);
   document.querySelector("#table-title").textContent = config.label;
-  document.querySelector("#table-head").innerHTML = `<tr>${config.fields.map(([, , label]) => `<th>${escapeHtml(label)}</th>`).join("")}${hasOrderItems ? "<th>ORDER ITEMS</th>" : ""}${readOnly ? "" : '<th class="actions-cell">ACTIONS</th>'}</tr>`;
+  const headerRow = document.createElement("tr");
+  config.fields.forEach(([, , label]) => {
+    const header = document.createElement("th");
+    header.textContent = label;
+    headerRow.append(header);
+  });
+  if (hasOrderItems) {
+    const header = document.createElement("th");
+    header.textContent = "ORDER ITEMS";
+    headerRow.append(header);
+  }
+  if (!readOnly) {
+    const header = document.createElement("th");
+    header.className = "actions-cell";
+    header.textContent = "ACTIONS";
+    headerRow.append(header);
+  }
+  document.querySelector("#table-head").replaceChildren(headerRow);
+  const body = document.querySelector("#table-body");
   if ((hasOrderItems || activeTable === "OrderDetails") && customerOrdersError) {
     document.querySelector("#record-count").textContent = "Unavailable";
     document.querySelector("#table-summary").textContent = "Customer order data could not be loaded.";
-    document.querySelector("#table-body").innerHTML = `<tr><td colspan="${visibleColumnCount}" class="empty-state">${formatValue(customerOrdersError.message)}</td></tr>`;
+    const errorRow = cloneTemplate("empty-table-row-template");
+    errorRow.querySelector("[data-empty-table]").colSpan = visibleColumnCount;
+    errorRow.querySelector("[data-empty-table]").textContent = customerOrdersError.message;
+    body.replaceChildren(errorRow);
     return;
   }
   const filtered = records[activeTable].filter((record) => {
@@ -394,16 +445,41 @@ function renderTable() {
   });
   document.querySelector("#record-count").textContent = `${filtered.length} ${filtered.length === 1 ? "record" : "records"}`;
   document.querySelector("#table-summary").textContent = `${filtered.length} of ${records[activeTable].length} records`;
-  document.querySelector("#table-body").innerHTML = filtered.length
-    ? filtered.map((record) => `<tr>${config.fields.map(([key]) => `<td>${renderTableCell(record, key)}</td>`).join("")}
-      ${hasOrderItems ? `<td>${renderOrderItemsCell(record)}</td>` : ""}
-      ${readOnly ? "" : `<td class="actions-cell"><button class="row-action" type="button" data-edit="${escapeHtml(record[config.id])}">Edit</button><button class="row-action delete" type="button" data-delete="${escapeHtml(record[config.id])}">Delete</button></td>`}</tr>`).join("")
-    : `<tr><td colspan="${visibleColumnCount}" class="empty-state">No matching records found.</td></tr>`;
+  if (!filtered.length) {
+    const emptyRow = cloneTemplate("empty-table-row-template");
+    emptyRow.querySelector("[data-empty-table]").colSpan = visibleColumnCount;
+    emptyRow.querySelector("[data-empty-table]").textContent = "No matching records found.";
+    body.replaceChildren(emptyRow);
+  } else {
+    const rows = filtered.map((record) => {
+      const row = cloneTemplate("data-row-template");
+      config.fields.forEach(([key]) => {
+        const cell = document.createElement("td");
+        const value = renderTableCell(record, key);
+        if (value instanceof Node) cell.append(value);
+        else cell.textContent = value;
+        row.append(cell);
+      });
+      if (hasOrderItems) {
+        const cell = document.createElement("td");
+        cell.append(renderOrderItemsCell(record));
+        row.append(cell);
+      }
+      if (!readOnly) {
+        const actions = cloneTemplate("table-actions-template");
+        actions.querySelector("[data-edit]").dataset.edit = record[config.id];
+        actions.querySelector("[data-delete]").dataset.delete = record[config.id];
+        row.append(actions);
+      }
+      return row;
+    });
+    body.replaceChildren(...rows);
+  }
 
-  document.querySelector("#table-body").querySelectorAll("[data-edit]").forEach((button) =>
+  body.querySelectorAll("[data-edit]").forEach((button) =>
     button.addEventListener("click", () => openDialog(button.dataset.edit))
   );
-  document.querySelector("#table-body").querySelectorAll("[data-delete]").forEach((button) =>
+  body.querySelectorAll("[data-delete]").forEach((button) =>
     button.addEventListener("click", () => deleteRecord(button.dataset.delete))
   );
 }
@@ -417,16 +493,19 @@ function statusTone(value) {
 }
 
 function renderStatusChip(value) {
-  return `<span class="status-chip ${statusTone(value)}">${formatValue(value)}</span>`;
+  const chip = cloneTemplate("status-chip-template");
+  chip.classList.add(statusTone(value));
+  chip.textContent = value || "—";
+  return chip;
 }
 
 function renderTableCell(record, key) {
   if (/status$/i.test(key)) return renderStatusChip(record[key]);
   if (activeTable === "OrderDetails" && key === "MenuItemID") {
     const menuItem = records.MenuItem.find((item) => String(item.MenuItemID) === String(record.MenuItemID));
-    return menuItem ? `${formatValue(record[key])} · ${formatValue(menuItem.ItemName)}` : formatValue(record[key]);
+    return menuItem ? `${record[key]} · ${menuItem.ItemName}` : String(record[key] ?? "—");
   }
-  return formatValue(record[key]);
+  return String(record[key] ?? "—");
 }
 
 function openDialog(id) {
@@ -444,14 +523,29 @@ function openDialog(id) {
     return;
   }
   document.querySelector("#dialog-title").textContent = `${editingId === null ? "Add" : "Edit"} ${singularLabel(activeTable)}`;
-  document.querySelector("#form-fields").innerHTML = config.fields.map(([key, type, label, options]) => {
+  const formFields = document.querySelector("#form-fields");
+  formFields.replaceChildren();
+  config.fields.forEach(([key, type, label, options]) => {
     const required = key === config.id || (key.endsWith("Name") && key !== "ManagerName") || key === "ItemName" || key === "Description";
     const inputId = `field-${key}`;
     const value = record[key] ?? "";
-    const common = `id="${inputId}" name="${escapeHtml(key)}" ${required ? "required" : ""} ${key === config.id && editingId !== null ? "disabled" : ""}`;
-    if (type === "textarea") return `<div class="field full-width"><label for="${inputId}">${escapeHtml(label)}${required ? " *" : ""}</label><textarea ${common}>${escapeHtml(value)}</textarea></div>`;
-    return `<div class="field"><label for="${inputId}">${escapeHtml(label)}${required ? " *" : ""}</label><input type="${type}" ${common}${options ? ` ${Object.entries(options).map(([name, option]) => `${name}="${escapeHtml(option)}"`).join(" ")}` : ""} value="${escapeHtml(value)}"></div>`;
-  }).join("");
+    const field = cloneTemplate(type === "textarea" ? "field-textarea-template" : "field-input-template");
+    const fieldLabel = field.querySelector("[data-field-label]");
+    const control = field.querySelector("[data-field-control]");
+    fieldLabel.htmlFor = inputId;
+    fieldLabel.textContent = `${label}${required ? " *" : ""}`;
+    control.id = inputId;
+    control.name = key;
+    control.required = required;
+    control.disabled = key === config.id && editingId !== null;
+    if (type === "textarea") control.value = value;
+    else {
+      control.type = type;
+      control.value = value;
+      Object.entries(options || {}).forEach(([name, option]) => control.setAttribute(name, option));
+    }
+    formFields.append(field);
+  });
   dialog.showModal();
   const firstEditable = dialog.querySelector("input:not(:disabled), textarea:not(:disabled)");
   if (firstEditable) firstEditable.focus();
