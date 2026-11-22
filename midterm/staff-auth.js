@@ -1,9 +1,5 @@
 (function () {
   const sessionKey = "pizzahaus-staff-session-v1";
-  const demoUsers = [
-    { username: "admin@pizzahaus.demo", password: "AdminDemo123!", role: "admin", name: "PizzaHaus Administrator" },
-    { username: "clerk@pizzahaus.demo", password: "ClerkDemo123!", role: "clerk", name: "PizzaHaus Clerk" }
-  ];
 
   function getSession() {
     try {
@@ -20,18 +16,42 @@
     }
   }
 
-  function signIn(username, password) {
-    const user = demoUsers.find((candidate) =>
-      candidate.username === String(username).trim().toLowerCase() && candidate.password === password
-    );
-    if (!user) return null;
+  async function signIn(username, password) {
+    let response;
+    const normalizedUsername = String(username || "").trim();
+    const normalizedPassword = String(password || "").trim();
+    try {
+      response = await fetch("http://127.0.0.1:8080/api.php?action=login", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
+        body: new URLSearchParams({
+          email: normalizedUsername,
+          password: normalizedPassword
+        })
+      });
+    } catch (error) {
+      throw new Error("The database server could not be reached.");
+    }
 
-    const session = { role: user.role, name: user.name };
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error("The server returned an invalid response.");
+    }
+    if (!response.ok) return null;
+
+    const session = {
+      role: payload.role,
+      name: payload.name || (payload.role === "admin" ? "PizzaHaus Administrator" : "PizzaHaus Clerk")
+    };
+    if (!["admin", "clerk"].includes(session.role)) return null;
+
     try {
       sessionStorage.setItem(sessionKey, JSON.stringify(session));
     } catch (error) {
-      console.error("Unable to save the PizzaHaus demo staff session.", error);
-      throw new Error("Sign-in could not be saved in this browser. Check session storage and try again.");
+      console.error("Unable to save the PizzaHaus staff session.", error);
+      throw new Error("Sign-in could not be saved in this browser.");
     }
     return session;
   }
@@ -52,7 +72,7 @@
     const session = getSession();
     const allowed = session && (session.role === requiredRole || session.role === "admin");
     if (!allowed) {
-      window.location.replace(`staff-login.html?next=${encodeURIComponent(requiredRole)}`);
+      window.location.replace(`login.html?next=${encodeURIComponent(requiredRole)}`);
       return;
     }
 
@@ -65,7 +85,7 @@
       button.addEventListener("click", () => {
         try {
           signOut();
-          window.location.replace("staff-login.html");
+          window.location.replace("login.html");
         } catch (error) {
           const notice = document.querySelector("#staff-notice, #notice");
           if (notice) {

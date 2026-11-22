@@ -5,23 +5,27 @@ function openStaffHome(session) {
   window.location.replace(session.role === "admin" ? "admin.html" : "clerk.html");
 }
 
-const existingSession = window.PizzaHausStaff.getSession();
-if (existingSession) openStaffHome(existingSession);
-
-loginForm.addEventListener("submit", (event) => {
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   loginError.hidden = true;
   const formData = new FormData(loginForm);
+  const submitButton = loginForm.querySelector("button[type=\"submit\"]");
+  submitButton.disabled = true;
   try {
-    const session = window.PizzaHausStaff.signIn(formData.get("username"), formData.get("password"));
+    window.PizzaHausStaff.signOut();
+    const session = await window.PizzaHausStaff.signIn(formData.get("username"), formData.get("password"));
     if (!session) {
-      loginError.textContent = "The email or password did not match a demo staff account.";
+      loginError.textContent = "Invalid email or password.";
       loginError.hidden = false;
+      window.alert("Invalid email or password.");
+      submitButton.disabled = false;
       return;
     }
     openStaffHome(session);
   } catch (error) {
     loginError.textContent = error.message;
     loginError.hidden = false;
+    window.alert("Invalid email or password.");
+    submitButton.disabled = false;
   }
 });

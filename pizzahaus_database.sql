@@ -1,4 +1,4 @@
-DROP DATABASE IF EXISTS pizzahaus_db;
+drop database if exists pizzahaus_db;
 
 CREATE DATABASE pizzahaus_db
   CHARACTER SET utf8mb4
@@ -19,7 +19,7 @@ CREATE TABLE Store (
   UNIQUE KEY uq_store_name (StoreName)
 ) ENGINE=InnoDB;
 
-
+CREATE TABLE StaffAccount (
   StaffID INT UNSIGNED NOT NULL AUTO_INCREMENT,
   StoreID INT UNSIGNED NULL,
   FullName VARCHAR(120) NOT NULL,
@@ -38,6 +38,19 @@ CREATE TABLE Store (
     FOREIGN KEY (StoreID) REFERENCES Store (StoreID)
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE account_table (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `rule` VARCHAR(50) NOT NULL,
+  email VARCHAR(254) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_account_email (email)
+) ENGINE=InnoDB;
+
+INSERT INTO account_table (id, `rule`, email, password) VALUES
+  (1, 'admin', 'admin@gmail.com', '1234'),
+  (2, 'clerk', 'clerk@gmail.com', '1234');
 
 CREATE TABLE Supplier (
   SupplierID INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -252,6 +265,19 @@ CREATE TABLE DailyReport (
     FOREIGN KEY (CreatedByStaffID) REFERENCES StaffAccount (StaffID)
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE account_table (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `rule` VARCHAR(50) NOT NULL,
+  email VARCHAR(254) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_account_email (email)
+) ENGINE=InnoDB;
+
+INSERT INTO account_table (id, `rule`, email, password) VALUES
+  (1, 'admin', 'admin@gmail.com', '1234'),
+  (2, 'clerk', 'clerk@gmail.com', '1234');
 
 INSERT INTO Store (StoreID, StoreName, Location, OperatingHours, ManagerName) VALUES
   (1, 'PizzaHaus Sipocot', 'Sipocot, Camarines Sur', 'Daily, 10:00 AM - 9:00 PM', NULL),
