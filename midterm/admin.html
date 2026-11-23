@@ -31,25 +31,23 @@
       </a>
       <p class="nav-caption">NAVIGATION</p>
       <nav class="side-nav" id="side-nav" aria-label="Admin sections">
-        <a class="nav-link" href="#overview" data-table=""><span class="nav-icon">⌂</span>Overview</a>
+        <a class="nav-link" href="#overview" data-table=""><span class="nav-icon"><img src="images/overview-icon.png" alt=""></span>Overview</a>
         <div class="nav-divider" role="separator"></div>
         <p class="nav-section-label">WORKSPACE</p>
-        <a class="nav-link" href="#CustomerOrder" data-table="CustomerOrder"><span class="nav-icon">▣</span>Orders<span class="nav-count" data-nav-count="CustomerOrder">0</span></a>
-        <a class="nav-link" href="#OrderDetails" data-table="OrderDetails"><span class="nav-icon">☷</span>Order details<span class="nav-count" data-nav-count="OrderDetails">0</span></a>
+        <a class="nav-link" href="#CustomerOrder" data-table="CustomerOrder"><span class="nav-icon"><img src="images/order-icon.png" alt=""></span>Orders<span class="nav-count" data-nav-count="CustomerOrder">0</span></a>
+        <a class="nav-link" href="#OrderDetails" data-table="OrderDetails"><span class="nav-icon"><img src="images/order%20details-icon.png" alt=""></span>Order details<span class="nav-count" data-nav-count="OrderDetails">0</span></a>
         <div class="nav-divider" role="separator"></div>
         <p class="nav-section-label">INVENTORY</p>
-        <a class="nav-link" href="#Ingredient" data-table="Ingredient"><span class="nav-icon">◌</span>Ingredients<span class="nav-count" data-nav-count="Ingredient">0</span></a>
-        <a class="nav-link" href="#MenuItem" data-table="MenuItem"><span class="nav-icon">◉</span>Menu items<span class="nav-count" data-nav-count="MenuItem">0</span></a>
+        <a class="nav-link" href="#Ingredient" data-table="Ingredient"><span class="nav-icon"><img src="images/ingredient-icon.png" alt=""></span>Ingredients<span class="nav-count" data-nav-count="Ingredient">0</span></a>
+        <a class="nav-link" href="#MenuItem" data-table="MenuItem"><span class="nav-icon"><img src="images/menu-icon.png" alt=""></span>Menu items<span class="nav-count" data-nav-count="MenuItem">0</span></a>
         <div class="nav-divider" role="separator"></div>
         <p class="nav-section-label">OPERATIONS</p>
-        <a class="nav-link" href="#Delivery" data-table="Delivery"><span class="nav-icon">⇢</span>Deliveries<span class="nav-count" data-nav-count="Delivery">0</span></a>
-        <a class="nav-link" href="#InventoryTransaction" data-table="InventoryTransaction"><span class="nav-icon">↕</span>Transactions<span class="nav-count" data-nav-count="InventoryTransaction">0</span></a>
-        <a class="nav-link" href="#DailyReport" data-table="DailyReport"><span class="nav-icon">▤</span>Daily reports<span class="nav-count" data-nav-count="DailyReport">0</span></a>
-        <a class="nav-link" href="#QualityIssue" data-table="QualityIssue"><span class="nav-icon">⚑</span>Quality issues<span class="nav-count" data-nav-count="QualityIssue">0</span></a>
+        <a class="nav-link" href="#DailyReport" data-table="DailyReport"><span class="nav-icon"><img src="images/daily%20report-icon.png" alt=""></span>Daily reports<span class="nav-count" data-nav-count="DailyReport">0</span></a>
+        <a class="nav-link" href="#QualityIssue" data-table="QualityIssue"><span class="nav-icon"><img src="images/quality%20issue-icon.png" alt=""></span>Quality issues<span class="nav-count" data-nav-count="QualityIssue">0</span></a>
         <div class="nav-divider" role="separator"></div>
         <p class="nav-section-label">LOCATIONS</p>
-        <a class="nav-link" href="#Store" data-table="Store"><span class="nav-icon">⌂</span>Stores<span class="nav-count" data-nav-count="Store">0</span></a>
-        <a class="nav-link" href="#Supplier" data-table="Supplier"><span class="nav-icon">♧</span>Suppliers<span class="nav-count" data-nav-count="Supplier">0</span></a>
+        <a class="nav-link" href="#Store" data-table="Store"><span class="nav-icon"><img src="images/store-icon.png" alt=""></span>Stores<span class="nav-count" data-nav-count="Store">0</span></a>
+        <a class="nav-link" href="#Supplier" data-table="Supplier"><span class="nav-icon"><img src="images/supplier-icon.png" alt=""></span>Suppliers<span class="nav-count" data-nav-count="Supplier">0</span></a>
       </nav>
       <div class="sidebar-bottom">
         <div class="profile-avatar" aria-hidden="true">A</div>
@@ -64,9 +62,7 @@
         <button class="sidebar-collapse" id="sidebar-collapse" type="button" aria-controls="sidebar" aria-label="Collapse sidebar" aria-pressed="false">⇤</button>
         <div class="breadcrumb"><span>Workspace</span><span aria-hidden="true">/</span><strong id="breadcrumb-current">Overview</strong></div>
         <div class="topbar-right">
-          <span class="storage-badge"><span aria-hidden="true">●</span> Browser data · not synced</span>
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false"><img src="images/sun-icon.webp" alt="Sun icon"><span>Theme</span></button>
-          <a class="visit-site" href="clerk.html">Order desk</a>
           <button class="secondary-button" type="button" data-staff-signout>Sign out</button>
           <a class="visit-site" href="index.html">View website <span aria-hidden="true">↗</span></a>
         </div>
@@ -82,7 +78,14 @@
           <button class="primary-button" id="add-record" type="button"><span aria-hidden="true">＋</span> Add record</button>
         </div>
 
-        <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+        <div id="notice" class="notice" role="status" aria-live="polite" hidden>
+          <span class="notice-icon" data-notice-icon aria-hidden="true"></span>
+          <div class="notice-copy">
+            <strong data-notice-title></strong>
+            <span data-notice-message></span>
+          </div>
+          <button class="notice-dismiss" type="button" aria-label="Dismiss notification">×</button>
+        </div>
         <section id="overview-panel" aria-label="Business overview">
           <div class="metrics-grid" id="overview-metrics"></div>
           <div class="overview-grid">
@@ -132,6 +135,21 @@
           </div>
           <div class="table-foot"><span id="table-summary"></span><span>Changes save in this browser</span></div>
         </section>
+
+        <section class="supplier-panel" id="supplier-panel" hidden aria-label="Supplier details">
+          <div class="supplier-controls">
+            <button class="secondary-button" type="button" data-back-suppliers>← All suppliers</button>
+            <button class="primary-button" type="button" data-add-delivery><span aria-hidden="true">＋</span> Add delivery</button>
+          </div>
+          <section class="overview-card supplier-profile">
+            <div class="card-heading"><h2 data-supplier-name></h2></div>
+            <div class="stock-list supplier-profile-details">
+              <div class="stock-row"><strong>Contact</strong><span data-supplier-contact></span></div>
+              <div class="stock-row"><strong>Address</strong><span data-supplier-address></span></div>
+            </div>
+          </section>
+          <div class="supplier-deliveries" id="supplier-deliveries"></div>
+        </section>
       </section>
     </main>
   </div>
@@ -151,6 +169,154 @@
     </form>
   </dialog>
 
+  <dialog class="confirmation-dialog" id="delete-confirmation-dialog" aria-labelledby="delete-confirmation-title" aria-describedby="delete-confirmation-message">
+    <div class="confirmation-content">
+      <span class="confirmation-icon" aria-hidden="true">!</span>
+      <div>
+        <p class="eyebrow">CONFIRM DELETE</p>
+        <h2 id="delete-confirmation-title">Delete this record?</h2>
+        <p id="delete-confirmation-message"></p>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="secondary-button" type="button" data-cancel-delete>Keep record</button>
+      <button class="danger-button" type="button" data-confirm-delete>Yes, delete</button>
+    </div>
+  </dialog>
+
+  <script id="admin-schema" type="application/json">
+    {
+      "CustomerOrder": {
+        "label": "Orders",
+        "id": "OrderID",
+        "fields": [
+          ["OrderID", "number", "Order ID"],
+          ["Reference", "text", "Reference"],
+          ["CustomerName", "text", "Customer name"],
+          ["ContactNumber", "tel", "Contact number"],
+          ["StoreID", "number", "Store ID"],
+          ["StoreName", "text", "Branch"],
+          ["PickupMethod", "text", "Fulfillment"],
+          ["DeliveryLocation", "text", "Delivery location"],
+          ["Notes", "textarea", "Customer notes"],
+          ["PaymentMethod", "text", "Payment method"],
+          ["PaymentStatus", "text", "Payment status"],
+          ["OrderDateTime", "text", "Order date & time"],
+          ["Total", "number", "Total", { "step": "0.01" }],
+          ["Status", "text", "Status"]
+        ]
+      },
+      "OrderDetails": {
+        "label": "Order details",
+        "id": "OrderDetailID",
+        "readOnly": true,
+        "fields": [
+          ["OrderDetailID", "text", "Order detail ID"],
+          ["OrderID", "number", "Order ID"],
+          ["MenuItemID", "number", "Menu item ID"],
+          ["Quantity", "number", "Quantity"],
+          ["Price", "number", "Price", { "step": "0.01" }]
+        ]
+      },
+      "MenuItem": {
+        "label": "Menu items",
+        "icon": "◉",
+        "id": "MenuItemID",
+        "fields": [
+          ["MenuItemID", "number", "Menu item ID"],
+          ["ItemName", "text", "Item name"],
+          ["Price", "number", "Price", { "step": "0.01" }]
+        ]
+      },
+      "Store": {
+        "label": "Stores",
+        "icon": "⌂",
+        "id": "StoreID",
+        "fields": [
+          ["StoreID", "number", "Store ID"],
+          ["StoreName", "text", "Store name"],
+          ["Location", "text", "Location"],
+          ["OperatingHours", "text", "Operating hours"],
+          ["ManagerName", "text", "Manager name"]
+        ]
+      },
+      "Ingredient": {
+        "label": "Ingredients",
+        "icon": "◌",
+        "id": "IngredientID",
+        "fields": [
+          ["IngredientID", "number", "Ingredient ID"],
+          ["IngredientName", "text", "Ingredient name"],
+          ["UnitMeasure", "text", "Unit of measure"],
+          ["CurrentStock", "number", "Current stock", { "step": "0.01" }],
+          ["ReorderLevel", "number", "Reorder level", { "step": "0.01" }]
+        ]
+      },
+      "Supplier": {
+        "label": "Suppliers",
+        "icon": "♧",
+        "id": "SupplierID",
+        "fields": [
+          ["SupplierID", "number", "Supplier ID"],
+          ["SupplierName", "text", "Supplier name"],
+          ["ContactInfo", "text", "Contact info"],
+          ["Address", "text", "Address"]
+        ]
+      },
+      "Delivery": {
+        "label": "Deliveries",
+        "icon": "⇢",
+        "id": "DeliveryID",
+        "fields": [
+          ["DeliveryID", "number", "Delivery ID"],
+          ["SupplierID", "number", "Supplier ID"],
+          ["StoreID", "number", "Store ID"],
+          ["DeliveryDate", "date", "Delivery date"],
+          ["TotalQuantity", "number", "Total quantity", { "step": "0.01" }]
+        ]
+      },
+      "InventoryTransaction": {
+        "label": "Transactions",
+        "icon": "↕",
+        "id": "TransactionID",
+        "fields": [
+          ["TransactionID", "number", "Transaction ID"],
+          ["IngredientID", "number", "Ingredient ID"],
+          ["DeliveryID", "number", "Delivery ID"],
+          ["OrderID", "number", "Order ID"],
+          ["TransactionType", "text", "Transaction type"],
+          ["Quantity", "number", "Quantity", { "step": "0.01" }],
+          ["TransactionDate", "date", "Transaction date"]
+        ]
+      },
+      "QualityIssue": {
+        "label": "Quality issues",
+        "icon": "⚑",
+        "id": "IssueID",
+        "fields": [
+          ["IssueID", "number", "Issue ID"],
+          ["OrderID", "number", "Order ID"],
+          ["Description", "textarea", "Description"],
+          ["DateReported", "date", "Date reported"],
+          ["ResolutionStatus", "text", "Resolution status"]
+        ]
+      },
+      "DailyReport": {
+        "label": "Daily reports",
+        "icon": "▤",
+        "id": "ReportID",
+        "fields": [
+          ["ReportID", "number", "Report ID"],
+          ["StoreID", "number", "Store ID"],
+          ["SupplierID", "number", "Supplier ID"],
+          ["ReportDate", "date", "Report date"],
+          ["TotalSales", "number", "Total sales", { "step": "0.01" }],
+          ["TotalOrders", "number", "Total orders"],
+          ["IngredientUsageSummary", "textarea", "Ingredient usage summary"]
+        ]
+      }
+    }
+  </script>
   <template id="metric-card-template">
     <article class="metric-card">
       <div class="metric-top"><span data-metric-label></span><span class="metric-icon" data-metric-icon aria-hidden="true"></span></div>
@@ -176,9 +342,45 @@
   <template id="data-row-template"><tr></tr></template>
   <template id="table-actions-template">
     <td class="actions-cell">
-      <button class="row-action" type="button" data-edit>Edit</button>
-      <button class="row-action delete" type="button" data-delete>Delete</button>
+      <button class="row-action supplier-open" type="button" data-open-supplier hidden>Manage</button>
+      <button class="row-action" type="button" data-edit aria-label="Edit"><img src="images/edit-icon.png" alt=""></button>
+      <button class="row-action delete" type="button" data-delete aria-label="Delete"><img src="images/delete-icon.png" alt=""></button>
     </td>
+  </template>
+  <template id="supplier-delivery-template">
+    <article class="overview-card supplier-delivery-card">
+      <div class="card-heading">
+        <div>
+          <h2>Delivery <span data-delivery-id></span></h2>
+          <p class="muted-copy" data-delivery-summary></p>
+        </div>
+        <div class="supplier-actions">
+          <button class="secondary-button" type="button" data-add-transaction><span aria-hidden="true">＋</span> Transaction</button>
+          <button class="row-action" type="button" data-edit-delivery aria-label="Edit delivery"><img src="images/edit-icon.png" alt=""></button>
+          <button class="row-action delete" type="button" data-delete-delivery aria-label="Delete delivery"><img src="images/delete-icon.png" alt=""></button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="supplier-transaction-table">
+          <thead><tr><th>TRANSACTION</th><th>INGREDIENT</th><th>TYPE</th><th>QUANTITY</th><th>DATE</th><th>ACTIONS</th></tr></thead>
+          <tbody data-transaction-rows></tbody>
+        </table>
+      </div>
+      <p class="empty-state" data-empty-transactions hidden>No transactions for this delivery.</p>
+    </article>
+  </template>
+  <template id="supplier-transaction-row-template">
+    <tr>
+      <td data-transaction-id></td>
+      <td data-transaction-ingredient></td>
+      <td data-transaction-type></td>
+      <td data-transaction-quantity></td>
+      <td data-transaction-date></td>
+      <td class="actions-cell">
+        <button class="row-action" type="button" data-edit-transaction aria-label="Edit transaction"><img src="images/edit-icon.png" alt=""></button>
+        <button class="row-action delete" type="button" data-delete-transaction aria-label="Delete transaction"><img src="images/delete-icon.png" alt=""></button>
+      </td>
+    </tr>
   </template>
   <template id="status-chip-template"><span class="status-chip"></span></template>
   <template id="empty-table-row-template">

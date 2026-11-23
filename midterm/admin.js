@@ -1,89 +1,4 @@
-const schema = {
-  CustomerOrder: {
-    label: "Orders", icon: "▣", id: "OrderID",
-    fields: [
-      ["OrderID", "number", "Order ID"], ["Reference", "text", "Reference"],
-      ["CustomerName", "text", "Customer name"], ["ContactNumber", "tel", "Contact number"],
-      ["StoreID", "number", "Store ID"], ["StoreName", "text", "Branch"],
-      ["PickupMethod", "text", "Fulfillment"], ["DeliveryLocation", "text", "Delivery location"],
-      ["Notes", "textarea", "Customer notes"], ["PaymentMethod", "text", "Payment method"],
-      ["PaymentStatus", "text", "Payment status"], ["OrderDateTime", "text", "Order date & time"],
-      ["Total", "number", "Total", { step: "0.01" }], ["Status", "text", "Status"]
-    ]
-  },
-  OrderDetails: {
-    label: "Order details", icon: "☷", id: "OrderDetailID", readOnly: true,
-    fields: [
-      ["OrderDetailID", "text", "Order detail ID"], ["OrderID", "number", "Order ID"],
-      ["MenuItemID", "number", "Menu item ID"], ["Quantity", "number", "Quantity"],
-      ["Price", "number", "Price", { step: "0.01" }]
-    ]
-  },
-  MenuItem: {
-    label: "Menu items", icon: "◉", id: "MenuItemID",
-    fields: [
-      ["MenuItemID", "number", "Menu item ID"], ["ItemName", "text", "Item name"],
-      ["Price", "number", "Price", { step: "0.01" }]
-    ]
-  },
-  Store: {
-    label: "Stores", icon: "⌂", id: "StoreID",
-    fields: [
-      ["StoreID", "number", "Store ID"], ["StoreName", "text", "Store name"],
-      ["Location", "text", "Location"], ["OperatingHours", "text", "Operating hours"],
-      ["ManagerName", "text", "Manager name"]
-    ]
-  },
-  Ingredient: {
-    label: "Ingredients", icon: "◌", id: "IngredientID",
-    fields: [
-      ["IngredientID", "number", "Ingredient ID"], ["IngredientName", "text", "Ingredient name"],
-      ["UnitMeasure", "text", "Unit of measure"], ["CurrentStock", "number", "Current stock", { step: "0.01" }],
-      ["ReorderLevel", "number", "Reorder level", { step: "0.01" }]
-    ]
-  },
-  Supplier: {
-    label: "Suppliers", icon: "♧", id: "SupplierID",
-    fields: [
-      ["SupplierID", "number", "Supplier ID"], ["SupplierName", "text", "Supplier name"],
-      ["ContactInfo", "text", "Contact info"], ["Address", "text", "Address"]
-    ]
-  },
-  Delivery: {
-    label: "Deliveries", icon: "⇢", id: "DeliveryID",
-    fields: [
-      ["DeliveryID", "number", "Delivery ID"], ["SupplierID", "number", "Supplier ID"],
-      ["StoreID", "number", "Store ID"], ["DeliveryDate", "date", "Delivery date"],
-      ["TotalQuantity", "number", "Total quantity", { step: "0.01" }]
-    ]
-  },
-  InventoryTransaction: {
-    label: "Transactions", icon: "↕", id: "TransactionID",
-    fields: [
-      ["TransactionID", "number", "Transaction ID"], ["IngredientID", "number", "Ingredient ID"],
-      ["DeliveryID", "number", "Delivery ID"], ["OrderID", "number", "Order ID"],
-      ["TransactionType", "text", "Transaction type"], ["Quantity", "number", "Quantity", { step: "0.01" }],
-      ["TransactionDate", "date", "Transaction date"]
-    ]
-  },
-  QualityIssue: {
-    label: "Quality issues", icon: "⚑", id: "IssueID",
-    fields: [
-      ["IssueID", "number", "Issue ID"], ["OrderID", "number", "Order ID"],
-      ["Description", "textarea", "Description"], ["DateReported", "date", "Date reported"],
-      ["ResolutionStatus", "text", "Resolution status"]
-    ]
-  },
-  DailyReport: {
-    label: "Daily reports", icon: "▤", id: "ReportID",
-    fields: [
-      ["ReportID", "number", "Report ID"], ["StoreID", "number", "Store ID"],
-      ["SupplierID", "number", "Supplier ID"], ["ReportDate", "date", "Report date"],
-      ["TotalSales", "number", "Total sales", { step: "0.01" }],
-      ["TotalOrders", "number", "Total orders"], ["IngredientUsageSummary", "textarea", "Ingredient usage summary"]
-    ]
-  }
-};
+const schema = JSON.parse(document.querySelector("#admin-schema").textContent);
 
 const storageKey = "pizzahaus-admin-records-v1";
 const resetKey = "pizzahaus-admin-demo-records-cleared-v1";
@@ -123,15 +38,22 @@ const nav = document.querySelector("#side-nav");
 const sidebar = document.querySelector("#sidebar");
 const overviewPanel = document.querySelector("#overview-panel");
 const dataPanel = document.querySelector("#data-panel");
+const supplierPanel = document.querySelector("#supplier-panel");
 const dialog = document.querySelector("#record-dialog");
+const deleteConfirmationDialog = document.querySelector("#delete-confirmation-dialog");
 const form = document.querySelector("#record-form");
 const notice = document.querySelector("#notice");
 let records;
 let activeTable = null;
 let editingId = null;
+let dialogTable = null;
+let dialogLockedFields = {};
+let selectedSupplierId = null;
+let resolveDeleteConfirmation = null;
 let searchTerm = "";
 let adminRecordsError = null;
 let customerOrdersError = null;
+let noticeTimer = null;
 
 function cloneInitialRecords() {
   return JSON.parse(JSON.stringify(initialRecords));
@@ -220,15 +142,50 @@ function saveRecords() {
 }
 
 function showNotice(message, isError) {
-  notice.textContent = message;
-  notice.classList.toggle("error", Boolean(isError));
+  const error = Boolean(isError);
+  window.clearTimeout(noticeTimer);
+  noticeTimer = null;
+  notice.querySelector("[data-notice-icon]").textContent = error ? "!" : "✓";
+  notice.querySelector("[data-notice-title]").textContent = error ? "Needs attention" : "Done!";
+  notice.querySelector("[data-notice-message]").textContent = message;
+  notice.classList.toggle("error", error);
+  notice.setAttribute("role", error ? "alert" : "status");
+  notice.setAttribute("aria-live", error ? "assertive" : "polite");
   notice.hidden = false;
+  if (!error) noticeTimer = window.setTimeout(clearNotice, 5000);
 }
 
 function clearNotice() {
+  window.clearTimeout(noticeTimer);
+  noticeTimer = null;
   notice.hidden = true;
-  notice.textContent = "";
+  notice.querySelector("[data-notice-icon]").textContent = "";
+  notice.querySelector("[data-notice-title]").textContent = "";
+  notice.querySelector("[data-notice-message]").textContent = "";
   notice.classList.remove("error");
+  notice.setAttribute("role", "status");
+  notice.setAttribute("aria-live", "polite");
+}
+
+function confirmRecordDeletion(record, table, id) {
+  const displayFields = ["SupplierName", "StoreName", "ItemName", "IngredientName", "CustomerName", "Reference"];
+  const displayField = displayFields.find((key) => record[key]);
+  const recordName = displayField ? `“${record[displayField]}”` : `${singularLabel(table)} #${id}`;
+  document.querySelector("#delete-confirmation-title").textContent = `Delete ${singularLabel(table)}?`;
+  document.querySelector("#delete-confirmation-message").textContent =
+    `Are you sure you want to delete ${recordName}? This action cannot be undone.`;
+  return new Promise((resolve) => {
+    resolveDeleteConfirmation = resolve;
+    deleteConfirmationDialog.showModal();
+  });
+}
+
+function finishDeleteConfirmation(confirmed) {
+  if (!deleteConfirmationDialog.open) return;
+  const resolve = resolveDeleteConfirmation;
+  resolveDeleteConfirmation = null;
+  deleteConfirmationDialog.close();
+  if (resolve) resolve(confirmed);
 }
 
 function cloneTemplate(id) {
@@ -245,6 +202,10 @@ function singularLabel(table) {
 
 function isReadOnlyTable(table) {
   return table === "CustomerOrder" || (Object.prototype.hasOwnProperty.call(schema, table) && schema[table].readOnly === true);
+}
+
+function isSupplierManagedTable(table) {
+  return table === "Delivery" || table === "InventoryTransaction";
 }
 
 function renderNav() {
@@ -274,6 +235,8 @@ overviewPanel.addEventListener("click", (event) => {
 });
 
 function navigate(table) {
+  if (isSupplierManagedTable(table)) table = "Supplier";
+  selectedSupplierId = null;
   activeTable = table;
   searchTerm = "";
   document.querySelector("#table-search").value = "";
@@ -281,6 +244,7 @@ function navigate(table) {
   const isOverview = !table;
   overviewPanel.hidden = !isOverview;
   dataPanel.hidden = isOverview;
+  supplierPanel.hidden = true;
   document.querySelector("#add-record").hidden = isOverview || isReadOnlyTable(table);
   document.querySelector("#breadcrumb-current").textContent = isOverview ? "Overview" : schema[table].label;
   document.querySelector("#page-title").textContent = isOverview ? "Overview" : schema[table].label;
@@ -294,6 +258,83 @@ function navigate(table) {
   if (isOverview) renderOverview();
   else renderTable();
   window.location.hash = table || "overview";
+}
+
+function openSupplierDetails(id) {
+  const supplier = records.Supplier.find((item) => String(item.SupplierID) === String(id));
+  if (!supplier) {
+    showNotice("That supplier could not be found. Refresh the list and try again.", true);
+    return;
+  }
+  clearNotice();
+  selectedSupplierId = String(supplier.SupplierID);
+  overviewPanel.hidden = true;
+  dataPanel.hidden = true;
+  supplierPanel.hidden = false;
+  document.querySelector("#add-record").hidden = true;
+  document.querySelector("#breadcrumb-current").textContent = supplier.SupplierName || "Supplier";
+  document.querySelector("#page-title").textContent = supplier.SupplierName || "Supplier";
+  document.querySelector("#page-subtitle").textContent = "Manage this supplier's deliveries and their transactions.";
+  document.querySelector("#page-eyebrow").textContent = "SUPPLIER MANAGEMENT";
+  renderNav();
+  renderSupplierDetails(supplier);
+  window.location.hash = "Supplier";
+}
+
+function renderSupplierDetails(supplier) {
+  document.querySelector("[data-supplier-name]").textContent = supplier.SupplierName || "Supplier";
+  document.querySelector("[data-supplier-contact]").textContent = supplier.ContactInfo || "No contact information";
+  document.querySelector("[data-supplier-address]").textContent = supplier.Address || "No address saved";
+
+  const deliveryList = document.querySelector("#supplier-deliveries");
+  const deliveries = records.Delivery.filter((delivery) =>
+    String(delivery.SupplierID) === String(supplier.SupplierID)
+  );
+  if (!deliveries.length) {
+    const empty = document.createElement("div");
+    empty.className = "overview-card empty-state";
+    empty.textContent = "No deliveries for this supplier yet. Use Add delivery to create one.";
+    deliveryList.replaceChildren(empty);
+    return;
+  }
+
+  const cards = deliveries.map((delivery) => {
+    const card = cloneTemplate("supplier-delivery-template");
+    const deliveryId = String(delivery.DeliveryID);
+    card.dataset.deliveryId = deliveryId;
+    card.querySelector("[data-delivery-id]").textContent = deliveryId;
+    card.querySelector("[data-delivery-summary]").textContent = [
+      delivery.DeliveryDate || "No date",
+      delivery.StoreID ? `Store ${delivery.StoreID}` : "No store",
+      `Quantity: ${delivery.TotalQuantity ?? "—"}`
+    ].join(" · ");
+    card.querySelector("[data-edit-delivery]").dataset.editDelivery = deliveryId;
+    card.querySelector("[data-delete-delivery]").dataset.deleteDelivery = deliveryId;
+    card.querySelector("[data-add-transaction]").dataset.addTransaction = deliveryId;
+
+    const transactions = records.InventoryTransaction.filter((transaction) =>
+      String(transaction.DeliveryID) === deliveryId
+    );
+    const rows = card.querySelector("[data-transaction-rows]");
+    rows.replaceChildren(...transactions.map((transaction) => {
+      const row = cloneTemplate("supplier-transaction-row-template");
+      const ingredient = records.Ingredient.find((item) =>
+        String(item.IngredientID) === String(transaction.IngredientID)
+      );
+      row.querySelector("[data-transaction-id]").textContent = transaction.TransactionID ?? "—";
+      row.querySelector("[data-transaction-ingredient]").textContent =
+        ingredient ? ingredient.IngredientName : transaction.IngredientID ?? "—";
+      row.querySelector("[data-transaction-type]").textContent = transaction.TransactionType || "—";
+      row.querySelector("[data-transaction-quantity]").textContent = transaction.Quantity ?? "—";
+      row.querySelector("[data-transaction-date]").textContent = transaction.TransactionDate || "—";
+      row.querySelector("[data-edit-transaction]").dataset.editTransaction = transaction.TransactionID;
+      row.querySelector("[data-delete-transaction]").dataset.deleteTransaction = transaction.TransactionID;
+      return row;
+    }));
+    card.querySelector("[data-empty-transactions]").hidden = transactions.length > 0;
+    return card;
+  });
+  deliveryList.replaceChildren(...cards);
 }
 
 function renderOverview() {
@@ -404,9 +445,10 @@ function renderTable() {
   const visibleColumnCount = config.fields.length + (hasOrderItems ? 1 : 0) + (readOnly ? 0 : 1);
   document.querySelector("#table-title").textContent = config.label;
   const headerRow = document.createElement("tr");
-  config.fields.forEach(([, , label]) => {
+  config.fields.forEach(([key, type, label]) => {
     const header = document.createElement("th");
     header.textContent = label;
+    if (shouldCenterField(key, type)) header.classList.add("centered-column");
     headerRow.append(header);
   });
   if (hasOrderItems) {
@@ -453,8 +495,9 @@ function renderTable() {
   } else {
     const rows = filtered.map((record) => {
       const row = cloneTemplate("data-row-template");
-      config.fields.forEach(([key]) => {
+      config.fields.forEach(([key, type]) => {
         const cell = document.createElement("td");
+        if (shouldCenterField(key, type)) cell.classList.add("centered-column");
         const value = renderTableCell(record, key);
         if (value instanceof Node) cell.append(value);
         else cell.textContent = value;
@@ -467,6 +510,9 @@ function renderTable() {
       }
       if (!readOnly) {
         const actions = cloneTemplate("table-actions-template");
+        const openSupplierButton = actions.querySelector("[data-open-supplier]");
+        openSupplierButton.hidden = activeTable !== "Supplier";
+        if (activeTable === "Supplier") openSupplierButton.dataset.openSupplier = record[config.id];
         actions.querySelector("[data-edit]").dataset.edit = record[config.id];
         actions.querySelector("[data-delete]").dataset.delete = record[config.id];
         row.append(actions);
@@ -482,6 +528,14 @@ function renderTable() {
   body.querySelectorAll("[data-delete]").forEach((button) =>
     button.addEventListener("click", () => deleteRecord(button.dataset.delete))
   );
+  body.querySelectorAll("[data-open-supplier]").forEach((button) =>
+    button.addEventListener("click", () => openSupplierDetails(button.dataset.openSupplier))
+  );
+}
+
+function shouldCenterField(key, type) {
+  return activeTable === "Supplier" || type === "number" || type === "date" || type === "tel" ||
+    /(?:ID|Status|Date(?:Time)?)$/i.test(key);
 }
 
 function statusTone(value) {
@@ -508,25 +562,29 @@ function renderTableCell(record, key) {
   return String(record[key] ?? "—");
 }
 
-function openDialog(id) {
-  if (isReadOnlyTable(activeTable)) {
+function openDialog(id, table, lockedFields) {
+  const targetTable = table || activeTable;
+  if (isReadOnlyTable(targetTable)) {
     showNotice("This data is read-only in admin.", true);
     return;
   }
+  dialogTable = targetTable;
+  dialogLockedFields = lockedFields || {};
   editingId = id === undefined ? null : String(id);
-  const config = schema[activeTable];
+  const config = schema[dialogTable];
   const record = editingId === null
-    ? { [config.id]: nextId(activeTable) }
-    : records[activeTable].find((item) => String(item[config.id]) === editingId);
+    ? { [config.id]: nextId(dialogTable), ...dialogLockedFields }
+    : records[dialogTable].find((item) => String(item[config.id]) === editingId);
   if (!record) {
     showNotice("That record could not be found. Refresh the table and try again.", true);
     return;
   }
-  document.querySelector("#dialog-title").textContent = `${editingId === null ? "Add" : "Edit"} ${singularLabel(activeTable)}`;
+  document.querySelector("#dialog-title").textContent = `${editingId === null ? "Add" : "Edit"} ${singularLabel(dialogTable)}`;
   const formFields = document.querySelector("#form-fields");
   formFields.replaceChildren();
   config.fields.forEach(([key, type, label, options]) => {
-    const required = key === config.id || (key.endsWith("Name") && key !== "ManagerName") || key === "ItemName" || key === "Description";
+    const required = key === config.id || (key.endsWith("Name") && key !== "ManagerName") || key === "ItemName" || key === "Description" ||
+      Object.prototype.hasOwnProperty.call(dialogLockedFields, key);
     const inputId = `field-${key}`;
     const value = record[key] ?? "";
     const field = cloneTemplate(type === "textarea" ? "field-textarea-template" : "field-input-template");
@@ -537,7 +595,8 @@ function openDialog(id) {
     control.id = inputId;
     control.name = key;
     control.required = required;
-    control.disabled = key === config.id && editingId !== null;
+    control.disabled = (key === config.id && editingId !== null) ||
+      Object.prototype.hasOwnProperty.call(dialogLockedFields, key);
     if (type === "textarea") control.value = value;
     else {
       control.type = type;
@@ -556,28 +615,98 @@ function nextId(table) {
   return records[table].reduce((max, record) => Math.max(max, Number(record[key]) || 0), 0) + 1;
 }
 
-function deleteRecord(id) {
-  if (isReadOnlyTable(activeTable)) {
+async function deleteRecord(id, table) {
+  const targetTable = table || activeTable;
+  if (isReadOnlyTable(targetTable)) {
     showNotice("This data is read-only in admin.", true);
     return;
   }
-  const config = schema[activeTable];
-  const record = records[activeTable].find((item) => String(item[config.id]) === String(id));
-  if (!record || !window.confirm(`Delete ${singularLabel(activeTable)} #${id}? This cannot be undone.`)) return;
-  const original = records[activeTable];
-  records[activeTable] = original.filter((item) => String(item[config.id]) !== String(id));
+  if (targetTable === "Supplier" && records.Delivery.some((delivery) => String(delivery.SupplierID) === String(id))) {
+    showNotice("This supplier has deliveries. Remove or reassign those deliveries before deleting the supplier.", true);
+    return;
+  }
+  if (targetTable === "Delivery" && records.InventoryTransaction.some((transaction) => String(transaction.DeliveryID) === String(id))) {
+    showNotice("This delivery has transactions. Delete those transactions before deleting the delivery.", true);
+    return;
+  }
+  const config = schema[targetTable];
+  const record = records[targetTable].find((item) => String(item[config.id]) === String(id));
+  if (!record) return;
+  const confirmed = await confirmRecordDeletion(record, targetTable, id);
+  if (!confirmed) return;
+  if (!records[targetTable].some((item) => String(item[config.id]) === String(id))) {
+    showNotice("This record is no longer available. Refresh the list and try again.", true);
+    return;
+  }
+  const original = records[targetTable];
+  records[targetTable] = original.filter((item) => String(item[config.id]) !== String(id));
   if (!saveRecords()) {
-    records[activeTable] = original;
+    records[targetTable] = original;
     return;
   }
   renderNav();
-  renderTable();
+  if (activeTable === "Supplier" && selectedSupplierId !== null) {
+    const supplier = records.Supplier.find((item) => String(item.SupplierID) === selectedSupplierId);
+    if (supplier) renderSupplierDetails(supplier);
+    else navigate("Supplier");
+  } else renderTable();
   showNotice("Record deleted.");
 }
 
 document.querySelector("#table-search").addEventListener("input", (event) => {
   searchTerm = event.target.value.trim().toLowerCase();
   renderTable();
+});
+
+notice.querySelector(".notice-dismiss").addEventListener("click", clearNotice);
+deleteConfirmationDialog.querySelector("[data-cancel-delete]").addEventListener("click", () =>
+  finishDeleteConfirmation(false)
+);
+deleteConfirmationDialog.querySelector("[data-confirm-delete]").addEventListener("click", () =>
+  finishDeleteConfirmation(true)
+);
+deleteConfirmationDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  finishDeleteConfirmation(false);
+});
+
+supplierPanel.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  if (button.hasAttribute("data-back-suppliers")) {
+    navigate("Supplier");
+    return;
+  }
+  const supplier = records.Supplier.find((item) => String(item.SupplierID) === selectedSupplierId);
+  if (!supplier) {
+    showNotice("The selected supplier could not be found. Return to the supplier list and try again.", true);
+    return;
+  }
+  if (button.hasAttribute("data-add-delivery")) {
+    openDialog(undefined, "Delivery", { SupplierID: supplier.SupplierID });
+    return;
+  }
+  if (button.hasAttribute("data-add-transaction")) {
+    openDialog(undefined, "InventoryTransaction", { DeliveryID: Number(button.dataset.addTransaction) });
+    return;
+  }
+  if (button.hasAttribute("data-edit-delivery")) {
+    openDialog(button.dataset.editDelivery, "Delivery", { SupplierID: supplier.SupplierID });
+    return;
+  }
+  if (button.hasAttribute("data-delete-delivery")) {
+    deleteRecord(button.dataset.deleteDelivery, "Delivery");
+    return;
+  }
+  const deliveryCard = button.closest(".supplier-delivery-card");
+  const deliveryId = deliveryCard ? deliveryCard.dataset.deliveryId : "";
+  if (button.hasAttribute("data-edit-transaction")) {
+    openDialog(button.dataset.editTransaction, "InventoryTransaction", { DeliveryID: Number(deliveryId) });
+    return;
+  }
+  if (button.hasAttribute("data-delete-transaction")) {
+    deleteRecord(button.dataset.deleteTransaction, "InventoryTransaction");
+  }
 });
 
 document.querySelector("#add-record").addEventListener("click", () => openDialog());
@@ -596,41 +725,52 @@ document.querySelector("#sidebar-collapse").addEventListener("click", (event) =>
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (!activeTable) return;
-  if (isReadOnlyTable(activeTable)) {
+  const table = dialogTable || activeTable;
+  if (!table) return;
+  if (isReadOnlyTable(table)) {
     showNotice("This data is read-only in admin.", true);
     return;
   }
-  const config = schema[activeTable];
+  const config = schema[table];
   const values = Object.fromEntries(new FormData(form).entries());
+  Object.assign(values, dialogLockedFields);
   config.fields.forEach(([key, type]) => {
     if (type === "number" && Object.prototype.hasOwnProperty.call(values, key) && values[key] !== "") {
       values[key] = Number(values[key]);
     }
   });
 
+  const wasEditing = editingId !== null;
   if (editingId !== null) {
-    const index = records[activeTable].findIndex((item) => String(item[config.id]) === editingId);
+    const index = records[table].findIndex((item) => String(item[config.id]) === editingId);
     if (index < 0) {
       dialog.close();
       showNotice("That record no longer exists. Refresh the table and try again.", true);
       return;
     }
-    records[activeTable][index] = { ...records[activeTable][index], ...values };
+    records[table][index] = { ...records[table][index], ...values };
   } else {
-    records[activeTable].push(values);
+    records[table].push(values);
   }
   if (!saveRecords()) return;
   dialog.close();
+  dialogTable = null;
+  dialogLockedFields = {};
   renderNav();
-  renderTable();
-  showNotice(editingId === null ? "Record added." : "Record updated.");
+  if (activeTable === "Supplier" && selectedSupplierId !== null) {
+    const supplier = records.Supplier.find((item) => String(item.SupplierID) === selectedSupplierId);
+    if (supplier) renderSupplierDetails(supplier);
+    else navigate("Supplier");
+  } else renderTable();
+  showNotice(wasEditing ? "Record updated." : "Record added.");
 });
 
 window.addEventListener("hashchange", () => {
-  const table = window.location.hash.slice(1);
-  const nextTable = Object.prototype.hasOwnProperty.call(schema, table) ? table : null;
-  if (nextTable !== activeTable) navigate(nextTable);
+  const table = decodeURIComponent(window.location.hash.slice(1));
+  const nextTable = isSupplierManagedTable(table)
+    ? "Supplier"
+    : Object.prototype.hasOwnProperty.call(schema, table) ? table : null;
+  if (nextTable !== activeTable || isSupplierManagedTable(table)) navigate(nextTable);
 });
 
 window.addEventListener("storage", (event) => {
@@ -647,7 +787,9 @@ records = loadRecords();
 refreshCustomerOrders();
 renderNav();
 const requestedTable = decodeURIComponent(window.location.hash.slice(1));
-const initialTable = Object.prototype.hasOwnProperty.call(schema, requestedTable) ? requestedTable : null;
+const initialTable = isSupplierManagedTable(requestedTable)
+  ? "Supplier"
+  : Object.prototype.hasOwnProperty.call(schema, requestedTable) ? requestedTable : null;
 navigate(initialTable);
 const startupErrors = [adminRecordsError, customerOrdersError].filter(Boolean);
 if (startupErrors.length) showNotice(startupErrors.map((error) => error.message).join(" "), true);
